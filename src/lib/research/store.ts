@@ -130,10 +130,26 @@ function studyFromForm(
   };
 }
 
-const seed = cloneSeed();
+/**
+ * Whether this build runs with real sign-in.
+ *
+ * The flag is a build-time value (`VITE_AUTH_ENABLED`), so the browser knows
+ * the posture before the first request. With sign-in on, the app starts EMPTY
+ * and waits for the server's answer — the demo seed is not a source of truth
+ * in that build, and the server seeds the same example records itself.
+ */
+const serverFirst = import.meta.env.VITE_AUTH_ENABLED !== "false";
+
+const seed = serverFirst ? null : cloneSeed();
 
 const initialData: DataSlice = {
-  ...seed,
+  users: seed?.users ?? [],
+  studies: seed?.studies ?? [],
+  applications: seed?.applications ?? [],
+  responses: seed?.responses ?? [],
+  notices: seed?.notices ?? [],
+  audits: seed?.audits ?? [],
+  issues: seed?.issues ?? [],
   sessionUserId: null,
   wizard: null,
   editingStudyId: null,

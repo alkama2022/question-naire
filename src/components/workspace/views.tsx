@@ -646,9 +646,9 @@ export function UserAdmin() {
         body="This only affects the copy stored in this browser. It does not change a server."
         confirmLabel={target?.suspend ? "Suspend" : "Restore"}
         destructive={target?.suspend}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!actor || !target) return;
-          const result = useDemoStore.getState().suspendUser(actor.id, target.id, target.suspend);
+          const result = await researchService.suspendUser(actor.id, target.id, target.suspend);
           if (result.ok) toast.success(result.message);
           else toast.error(result.error);
           setTarget(null);

@@ -83,14 +83,13 @@ export function CreateStudyForm({ studyId }: { studyId?: string }) {
       return;
     }
     setBusy("submit");
-    const state = useDemoStore.getState();
-    const saved = state.upsertDraft(user!.id, values, existing?.id);
+    const saved = await researchService.upsertDraft(user!.id, values, existing?.id);
     if (!saved.ok || !saved.data) {
       setBusy(null);
       toast.error(saved.error ?? "The draft was not saved.");
       return;
     }
-    const submitted = useDemoStore.getState().submitForReview(user!.id, saved.data.id);
+    const submitted = await researchService.submitForReview(user!.id, saved.data.id);
     setBusy(null);
     if (!submitted.ok) {
       toast.error(submitted.error);

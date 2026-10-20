@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox, Field, Input, PasswordInput, RadioCards } from "@/components/ui/field";
 import { ConfirmDialog } from "@/components/ui/overlay";
+import { authClient, authEnabled, signIn as signInWithProvider } from "@/lib/auth/client";
 import { roleHome } from "@/lib/research/format";
+import { getSignInMethods, researchService } from "@/lib/research/service";
 import { noticesFor, useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
 import { DEMO_PASSWORD } from "@/lib/research/types";
+import { useDataMode } from "@/lib/research/use-data-mode";
 import {
   contactSchema,
   localPasswordSchema,
@@ -25,7 +28,132 @@ const samples = [
   ["Fatima Abdullahi", "fatima@demo.researchconnect.ng", "Participant"],
 ] as const;
 
+/**
+ * Sign in.
+ *
+ * With real sign-in (the production path) this is a real account: the
+ * password is checked by the server, the session is a server-held cookie, and
+ * the records behind it are shared between devices. In demo mode it stays the
+ * browser-only session the demo always had.
+ */
 export function LoginForm() {
+  const mode = useDataMode();
+  if (mode === "server") return <AccountLoginForm />;
+  return <DemoLoginForm />;
+}
+
+function AccountLoginForm() {
+  const navigate = useNavigate();
+  const methods = getSignInMethods();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+
+  async function enter() {
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setErrors(issuesToMap(parsed.error.issues));
+      return;
+    }
+    setErrors({});
+    setBusy(true);
+    try {
+      const { error } = await authClient.signIn.email({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+      if (error) {
+        toast.error(error.message ?? "That email and password did not match.");
+        return;
+      }
+      await researchService.refresh();
+      const viewer = researchService.mode === "server" ? currentRole() : null;
+      toast.success("Signed in.");
+      void navigate({ to: viewer ? roleHome(viewer) : "/" });
+    } catch {
+      toast.error("Sign-in could not be completed. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-6">
+      <Card className="grid gap-4 p-5">
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void enter();
+          }}
+        >
+          <Field label="Email" htmlFor="login-email" error={errors.email}>
+            <Input
+              id="login-email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={Boolean(errors.email)}
+            />
+          </Field>
+          <Field label="Password" htmlFor="login-password" error={errors.password}>
+            <PasswordInput
+              id="login-password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </Field>
+          <Button type="submit" busy={busy}>
+            Log in
+          </Button>
+        </form>
+        <p className="text-sm">
+          <Link to="/forgot-password" className="font-medium text-brand underline">
+            Forgot password
+          </Link>
+        </p>
+      </Card>
+      {methods.providers.length ? (
+        <Card className="grid gap-3 p-5">
+          <h2 className="font-display text-xl font-semibold">Or continue with</h2>
+          <div className="grid gap-2">
+            {methods.providers.map((providerId) => (
+              <Button
+                key={providerId}
+                variant="secondary"
+                onClick={() => {
+                  void signInWithProvider(providerId, { callbackURL: "/" }).catch(() =>
+                    toast.error("Sign-in could not be started."),
+                  );
+                }}
+              >
+                Continue with {providerLabel(providerId)}
+              </Button>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+    </div>
+  );
+}
+
+/** The role of the person who just signed in, as the server holds it. */
+function currentRole(): "researcher" | "participant" | "admin" | null {
+  const state = useDemoStore.getState();
+  const user = state.users.find((item) => item.id === state.sessionUserId);
+  return user ? user.role : null;
+}
+
+function providerLabel(providerId: string) {
+  if (providerId.includes("google")) return "Google";
+  if (providerId.includes("twitter") || providerId.includes("x")) return "X";
+  return "another provider";
+}
+
+function DemoLoginForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -131,7 +259,17 @@ export function LoginForm() {
   );
 }
 
+/**
+ * Create an account.
+ *
+ * With real sign-in this creates a server-held account: the password is
+ * hashed by the server, the session is a server cookie, and the profile
+ * (role, institution, programme) is written to the database. The role is
+ * chosen here, but only between researcher and participant — administrator
+ * access is granted by the server, never by the browser.
+ */
 export function RegisterForm({ initialRole }: { initialRole?: "researcher" | "participant" }) {
+  const mode = useDataMode();
   const navigate = useNavigate();
   const [role, setRole] = useState<"researcher" | "participant">(initialRole ?? "researcher");
   const [name, setName] = useState("");
@@ -144,36 +282,68 @@ export function RegisterForm({ initialRole }: { initialRole?: "researcher" | "pa
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
 
+  async function submit() {
+    const parsed = registerSchema.safeParse({
+      name,
+      email,
+      password,
+      confirm,
+      role,
+      institution,
+      programme,
+      acceptTerms,
+    });
+    if (!parsed.success) {
+      setErrors(issuesToMap(parsed.error.issues));
+      return;
+    }
+    setErrors({});
+    setBusy(true);
+    try {
+      if (mode === "server") {
+        const { error } = await authClient.signUp.email({
+          email: parsed.data.email,
+          password: parsed.data.password,
+          name: parsed.data.name,
+        });
+        if (error) {
+          toast.error(error.message ?? "That account could not be created.");
+          return;
+        }
+        await researchService.refresh();
+        const roleResult = await researchService.setOwnRole(parsed.data.role);
+        if (!roleResult.ok) toast.error(roleResult.error);
+        await researchService.updateProfile("", {
+          name: parsed.data.name,
+          institution: parsed.data.institution,
+          programme: parsed.data.programme,
+        });
+        toast.success("Account created.");
+        void navigate({ to: "/verify-email" });
+        return;
+      }
+
+      const result = useDemoStore.getState().register(parsed.data);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(result.message);
+      void navigate({ to: "/verify-email" });
+    } catch {
+      toast.error("The account could not be created. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Card className="grid gap-4 p-5">
       <form
         className="grid gap-4"
         onSubmit={(event) => {
           event.preventDefault();
-          const parsed = registerSchema.safeParse({
-            name,
-            email,
-            password,
-            confirm,
-            role,
-            institution,
-            programme,
-            acceptTerms,
-          });
-          if (!parsed.success) {
-            setErrors(issuesToMap(parsed.error.issues));
-            return;
-          }
-          setErrors({});
-          setBusy(true);
-          const result = useDemoStore.getState().register(parsed.data);
-          setBusy(false);
-          if (!result.ok) {
-            toast.error(result.error);
-            return;
-          }
-          toast.success(result.message);
-          void navigate({ to: "/verify-email" });
+          void submit();
         }}
       >
         <RadioCards
@@ -219,58 +389,96 @@ export function RegisterForm({ initialRole }: { initialRole?: "researcher" | "pa
           label={
             <>
               I agree to the <Link to="/terms" className="underline">terms</Link> and{" "}
-              <Link to="/privacy" className="underline">privacy notes</Link> for this demo.
+              <Link to="/privacy" className="underline">privacy notes</Link>
+              {mode === "server" ? " for this service." : " for this demo."}
             </>
           }
         />
         {errors.acceptTerms ? <p className="text-sm text-danger">{errors.acceptTerms}</p> : null}
         <Button type="submit" busy={busy}>
-          Create demo session
+          {mode === "server" ? "Create account" : "Create demo session"}
         </Button>
       </form>
     </Card>
   );
 }
 
+/**
+ * Reset a password.
+ *
+ * With real sign-in the server owns the recovery flow and the deployment's
+ * mail service sends the link — so the browser asks the server and reports
+ * what it says. In demo mode the password only ever changes in this browser.
+ */
 export function LocalPasswordForm() {
+  const mode = useDataMode();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    const parsed = localPasswordSchema.safeParse({ email, password, confirm });
+    if (!parsed.success) {
+      setErrors(issuesToMap(parsed.error.issues));
+      return;
+    }
+    setBusy(true);
+    try {
+      if (mode === "server") {
+        const { error } = await authClient.requestPasswordReset({
+          email: parsed.data.email,
+          redirectTo: "/reset-password",
+        });
+        if (error) {
+          toast.error(error.message ?? "A reset link could not be requested.");
+          return;
+        }
+        toast.success("If that address has an account, a reset link is on its way.");
+        return;
+      }
+      const result = useDemoStore
+        .getState()
+        .setLocalPassword(parsed.data.email, parsed.data.password);
+      if (result.ok) toast.success(result.message);
+      else toast.error(result.error);
+    } catch {
+      toast.error("The password could not be reset. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Card className="grid gap-4 p-5">
       <p className="text-sm text-ink-soft">
-        Password reset emails are not available. If the email already has a demo account in this
-        browser, you can set a new local password here. This is not a secure recovery flow.
+        {mode === "server"
+          ? "Enter your email and the server sends a reset link. The link opens a page where you choose a new password."
+          : "Password reset emails are not available. If the email already has a demo account in this browser, you can set a new local password here. This is not a secure recovery flow."}
       </p>
       <form
         className="grid gap-4"
         onSubmit={(event) => {
           event.preventDefault();
-          const parsed = localPasswordSchema.safeParse({ email, password, confirm });
-          if (!parsed.success) {
-            setErrors(issuesToMap(parsed.error.issues));
-            return;
-          }
-          setBusy(true);
-          const result = useDemoStore.getState().setLocalPassword(parsed.data.email, parsed.data.password);
-          setBusy(false);
-          if (result.ok) toast.success(result.message);
-          else toast.error(result.error);
+          void submit();
         }}
       >
         <Field label="Email" htmlFor="reset-email" error={errors.email}>
           <Input id="reset-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </Field>
-        <Field label="New password" htmlFor="reset-password" error={errors.password}>
-          <PasswordInput id="reset-password" value={password} onChange={(event) => setPassword(event.target.value)} />
-        </Field>
-        <Field label="Confirm new password" htmlFor="reset-confirm" error={errors.confirm}>
-          <PasswordInput id="reset-confirm" value={confirm} onChange={(event) => setConfirm(event.target.value)} />
-        </Field>
+        {mode === "server" ? null : (
+          <>
+            <Field label="New password" htmlFor="reset-password" error={errors.password}>
+              <PasswordInput id="reset-password" value={password} onChange={(event) => setPassword(event.target.value)} />
+            </Field>
+            <Field label="Confirm new password" htmlFor="reset-confirm" error={errors.confirm}>
+              <PasswordInput id="reset-confirm" value={confirm} onChange={(event) => setConfirm(event.target.value)} />
+            </Field>
+          </>
+        )}
         <Button type="submit" busy={busy}>
-          Update password in this browser
+          {mode === "server" ? "Send reset link" : "Update password in this browser"}
         </Button>
       </form>
     </Card>
@@ -278,13 +486,16 @@ export function LocalPasswordForm() {
 }
 
 export function VerifyEmailPanel() {
+  const mode = useDataMode();
   const user = useSessionUser();
   const [busy, setBusy] = useState(false);
   if (!user) {
     return (
       <Card className="p-5">
         <h1 className="font-display text-2xl font-semibold">Email verification</h1>
-        <p className="mt-2 text-sm text-ink-soft">Sign in to a demo session to see this state.</p>
+        <p className="mt-2 text-sm text-ink-soft">
+          {mode === "server" ? "Sign in to see this state." : "Sign in to a demo session to see this state."}
+        </p>
         <Button className="mt-4" asChild>
           <Link to="/login">Log in</Link>
         </Button>
@@ -296,12 +507,20 @@ export function VerifyEmailPanel() {
       <h1 className="font-display text-2xl font-semibold">Email verification</h1>
       <p className="text-sm">
         Status:{" "}
-        <strong>{user.emailVerified ? "Marked verified in this browser" : "Not verified"}</strong>
+        <strong>
+          {user.emailVerified
+            ? mode === "server"
+              ? "Verified"
+              : "Marked verified in this browser"
+            : "Not verified"}
+        </strong>
       </p>
       <p className="text-sm text-ink-soft">
-        No verification email was sent. Demo mode cannot prove that {user.email} belongs to you.
+        {mode === "server"
+          ? "Verification depends on the mail service this deployment is configured with. Until then, the account works and the address stays unverified."
+          : `No verification email was sent. Demo mode cannot prove that ${user.email} belongs to you.`}
       </p>
-      {!user.emailVerified ? (
+      {!user.emailVerified && mode !== "server" ? (
         <Button
           variant="secondary"
           busy={busy}
@@ -324,6 +543,7 @@ export function VerifyEmailPanel() {
 }
 
 export function SettingsPanel() {
+  const mode = useDataMode();
   const user = useSessionUser();
   const [name, setName] = useState(user?.name ?? "");
   const [institution, setInstitution] = useState(user?.institution ?? "");
@@ -333,6 +553,7 @@ export function SettingsPanel() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [resetOpen, setResetOpen] = useState(false);
   if (!user) return null;
+  const server = mode === "server";
   return (
     <div className="grid gap-4">
       <Card className="grid gap-4 p-5">
@@ -346,9 +567,13 @@ export function SettingsPanel() {
               setErrors(issuesToMap(parsed.error.issues));
               return;
             }
-            const result = useDemoStore.getState().updateProfile(user.id, parsed.data);
-            if (result.ok) toast.success(result.message);
-            else toast.error(result.error);
+            void (async () => {
+              const result = server
+                ? await researchService.updateProfile(user.id, parsed.data)
+                : useDemoStore.getState().updateProfile(user.id, parsed.data);
+              if (result.ok) toast.success(result.message);
+              else toast.error(result.error);
+            })();
           }}
         >
           <Field label="Name" htmlFor="set-name" error={errors.name}>
@@ -361,7 +586,7 @@ export function SettingsPanel() {
             <Input id="set-prog" value={programme} onChange={(event) => setProgramme(event.target.value)} />
           </Field>
           <p className="text-sm text-ink-soft">Email stays {user.email}. Role stays {user.role}.</p>
-          <Button type="submit">Save profile in this browser</Button>
+          <Button type="submit">{server ? "Save profile" : "Save profile in this browser"}</Button>
         </form>
       </Card>
       <Card className="grid gap-3 p-5">
@@ -370,55 +595,69 @@ export function SettingsPanel() {
         <Checkbox
           checked={notifyEmail}
           onCheckedChange={setNotifyEmail}
-          label="Email me (preference only — demo mode does not send email)"
+          label={server ? "Email me" : "Email me (preference only — demo mode does not send email)"}
         />
         <Button
           variant="secondary"
           onClick={() => {
-            const result = useDemoStore.getState().updatePrefs(user.id, { notifyEmail, notifyInApp });
-            if (result.ok) toast.success(result.message);
-            else toast.error(result.error);
+            void (async () => {
+              const result = server
+                ? await researchService.updatePrefs(user.id, { notifyEmail, notifyInApp })
+                : useDemoStore.getState().updatePrefs(user.id, { notifyEmail, notifyInApp });
+              if (result.ok) toast.success(result.message);
+              else toast.error(result.error);
+            })();
           }}
         >
           Save preferences
         </Button>
       </Card>
-      <Card className="p-5">
-        <h2 className="font-display text-xl font-semibold">Reset demo data</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          Restores the original sample studies and signs out. Accounts you created in this browser
-          are removed.
-        </p>
-        <Button className="mt-3" variant="danger" onClick={() => setResetOpen(true)}>
-          Reset demo data
-        </Button>
-      </Card>
-      <ConfirmDialog
-        open={resetOpen}
-        onOpenChange={setResetOpen}
-        title="Reset all demo data?"
-        body="Sample records return, your browser-only accounts and edits are removed, and this session ends."
-        confirmLabel="Reset"
-        destructive
-        onConfirm={() => {
-          useDemoStore.getState().resetDemo();
-          setResetOpen(false);
-          toast.success("Demo data restored in this browser.");
-        }}
-      />
+      {server ? null : (
+        <Card className="p-5">
+          <h2 className="font-display text-xl font-semibold">Reset demo data</h2>
+          <p className="mt-2 text-sm text-ink-soft">
+            Restores the original sample studies and signs out. Accounts you created in this browser
+            are removed.
+          </p>
+          <Button className="mt-3" variant="danger" onClick={() => setResetOpen(true)}>
+            Reset demo data
+          </Button>
+        </Card>
+      )}
+      {server ? null : (
+        <ConfirmDialog
+          open={resetOpen}
+          onOpenChange={setResetOpen}
+          title="Reset all demo data?"
+          body="Sample records return, your browser-only accounts and edits are removed, and this session ends."
+          confirmLabel="Reset"
+          destructive
+          onConfirm={() => {
+            useDemoStore.getState().resetDemo();
+            setResetOpen(false);
+            toast.success("Demo data restored in this browser.");
+          }}
+        />
+      )}
     </div>
   );
 }
 
 export function NotificationsPanel() {
+  const mode = useDataMode();
   const user = useSessionUser();
   const notices = useDemoQuery((state) => noticesFor(user, state.notices));
+  const server = mode === "server";
   if (!user) return null;
   if (!user.notifyInApp) {
     return <p className="text-sm text-ink-soft">In-app notices are off in your preferences.</p>;
   }
   if (notices.length === 0) {
-    return <p className="text-sm text-ink-soft">No notices in this browser yet.</p>;
+    return (
+      <p className="text-sm text-ink-soft">
+        {server ? "No notices yet." : "No notices in this browser yet."}
+      </p>
+    );
   }
   return (
     <div className="grid gap-3">
@@ -426,8 +665,12 @@ export function NotificationsPanel() {
         <Button
           variant="secondary"
           onClick={() => {
-            useDemoStore.getState().markAllRead(user.id);
-            toast.success("Marked read in this browser.");
+            void (async () => {
+              const result = server
+                ? await researchService.markAllRead(user.id)
+                : (useDemoStore.getState().markAllRead(user.id), { ok: true });
+              if (result.ok) toast.success(server ? "Marked read." : "Marked read in this browser.");
+            })();
           }}
         >
           Mark all read
@@ -437,7 +680,7 @@ export function NotificationsPanel() {
         <Card key={notice.id} className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-medium">{notice.title}</h2>
-            <span className="text-xs text-ink-soft">{notice.read ? "Read" : "Unread"} · {notice.origin === "sample" ? "Sample" : "This browser"}</span>
+            <span className="text-xs text-ink-soft">{notice.read ? "Read" : "Unread"} · {originLabel(notice.origin)}</span>
           </div>
           <p className="mt-2 text-sm text-ink-soft">{notice.body}</p>
           <div className="mt-3 flex gap-2">
@@ -450,7 +693,12 @@ export function NotificationsPanel() {
               <button
                 type="button"
                 className="text-sm underline"
-                onClick={() => useDemoStore.getState().markNoticeRead(user.id, notice.id)}
+                onClick={() => {
+                  void (async () => {
+                    if (server) await researchService.markNoticeRead(user.id, notice.id);
+                    else useDemoStore.getState().markNoticeRead(user.id, notice.id);
+                  })();
+                }}
               >
                 Mark read
               </button>
@@ -460,6 +708,13 @@ export function NotificationsPanel() {
       ))}
     </div>
   );
+}
+
+/** Where a record was created — the label the screens show next to it. */
+function originLabel(origin: string) {
+  if (origin === "sample") return "Sample";
+  if (origin === "server") return "Saved on the server";
+  return "This browser";
 }
 
 export function ContactForm() {
