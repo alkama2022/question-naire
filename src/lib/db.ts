@@ -171,7 +171,17 @@ async function createPgliteSql(): Promise<Sql> {
     return pg;
   })().catch((err) => {
     globalRef.__pgliteInstance__ = undefined;
-    throw err;
+    // The embedded database needs its WASM assets next to the running code. A
+    // bundled deployment that ships without them (and without DATABASE_URL)
+    // has nowhere to keep records — say so plainly instead of failing with a
+    // file-not-found error from deep inside the driver.
+    throw new Error(
+      "The embedded database could not start (" +
+        (err?.message || err) +
+        "). This deployment has no DATABASE_URL, so there is nowhere to store records. " +
+        "Set DATABASE_URL to a Postgres database.",
+      { cause: err },
+    );
   });
   const pg = await globalRef.__pgliteInstance__;
 
@@ -272,13 +282,17 @@ export function ensureDbReady(): Promise<void> {
 
 // Server-only eager start: kick PGLite bootstrap as soon as this module loads in
 // Node. Client bundles never hit this path (`getSql` throws in the browser).
+//
+// The promise stored here always RESOLVES: a failed bootstrap is logged, not
+// thrown into the void. An unhandled rejection would take the whole server
+// down, and a missing database is a configuration problem to report on the
+// first query — not a reason to crash the process.
 const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
 };
 if (typeof window === "undefined" && dbSource === "pglite") {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
-    console.error("[db] PGLite bootstrap failed:", err);
-    throw err;
+    console.error("[db] PGLite bootstrap failed:", err?.message || err);
   });
 }
