@@ -218,7 +218,7 @@ const browserService: ResearchService = {
   },
 
   async upsertDraft(ownerId, values, studyId) {
-    return useDemoStore.getState().upsertDraft(ownerId, values, studyId);
+    return useDemoStore.getState().upsertDraft(ownerId, values, studyId ?? undefined);
   },
   async submitForReview(ownerId, studyId) {
     return useDemoStore.getState().submitForReview(ownerId, studyId);
@@ -299,8 +299,7 @@ const serverService: ResearchService = {
     return call(() =>
       saveStudyRequest({ data: { ...values, studyId: studyId ?? undefined } }),
     );
-  },
-  submitForReview(_ownerId, studyId) {
+  },  submitForReview(_ownerId, studyId) {
     return call(() => submitStudyRequest({ data: { studyId } }));
   },
   reviewStudy(_actorId, studyId, action, note) {
@@ -351,7 +350,7 @@ const serverService: ResearchService = {
     return call(() => markNoticeReadRequest({ data: { noticeId } }));
   },
   markAllRead() {
-    return call(() => markAllNoticesReadRequest({ data: {} }));
+    return call(() => markAllNoticesReadRequest());
   },
   setOwnRole(role) {
     return call(() => setOwnRoleRequest({ data: { role } }));

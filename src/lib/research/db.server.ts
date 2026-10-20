@@ -571,11 +571,11 @@ export async function saveStudy(
   const ageMax = values.ageMax.trim() ? Number(values.ageMax) : null;
 
   if (studyId) {
-    const existing = await sql<{ id: string; status: StudyStatus }>`
-      select id, status from rc_studies where id = ${studyId}
+    const existing = await sql<{ id: string; ownerId: string; status: StudyStatus }>`
+      select id, owner_id as "ownerId", status from rc_studies where id = ${studyId}
     `;
     if (!existing.length) return { ok: false, error: "That study no longer exists." };
-    if (actor.role !== "admin" && existing[0].id && actor.userId !== ownerOf(sql, studyId)) {
+    if (actor.role !== "admin" && existing[0].ownerId !== actor.userId) {
       return { ok: false, error: "You can only edit your own study." };
     }
     await sql`

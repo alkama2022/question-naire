@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/overlay";
 import { signOut as signOutOfAccount } from "@/lib/auth/client";
 import { noticesFor, useDemoStore, useSessionUser } from "@/lib/research/store";
-import type { Role } from "@/lib/research/types";
+import type { Origin, Role } from "@/lib/research/types";
 import { useDataMode } from "@/lib/research/use-data-mode";
 import { cn } from "@/lib/utils";
 
@@ -563,10 +563,12 @@ export function PageHeader({
   );
 }
 
-export function OriginNote({ origin }: { origin: "sample" | "browser" }) {
-  return (
-    <span className="text-xs font-medium text-ink-soft">
-      {origin === "sample" ? "Sample record" : "Created in this browser"}
-    </span>
-  );
+export function OriginNote({ origin }: { origin: Origin }) {
+  const label =
+    origin === "sample"
+      ? "Sample record"
+      : origin === "server"
+        ? "Saved on the server"
+        : "Created in this browser";
+  return <span className="text-xs font-medium text-ink-soft">{label}</span>;
 }

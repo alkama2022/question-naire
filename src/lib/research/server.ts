@@ -22,6 +22,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
 import type { ServerState } from "./db.server.ts";
+import type { SnapshotProfile } from "./types.ts";
 
 /** What the browser hydrates its store from. */
 export interface AppSnapshot {
@@ -197,8 +198,8 @@ export const saveStudyRequest = createServerFn({ method: "POST" })
   .inputValidator(studyValuesSchema)
   .handler(async ({ data }): Promise<MutationResponse<{ id: string }>> =>
     runAsUser(async (db, actor) => {
-      const studyId = (data as { studyId?: string }).studyId ?? null;
-      return db.saveStudy(actor, data, studyId);
+      const { studyId, ...values } = data;
+      return db.saveStudy(actor, values, studyId ?? null);
     }),
   );
 
@@ -286,7 +287,7 @@ export const updateProfileRequest = createServerFn({ method: "POST" })
       programme: z.string().trim().max(160),
     }),
   )
-  .handler(async ({ data }): Promise<MutationResponse> =>
+  .handler(async ({ data }): Promise<MutationResponse<SnapshotProfile>> =>
     runAsUser(async (db, actor) => db.updateProfile(actor, data)),
   );
 
@@ -300,7 +301,7 @@ export const updatePreferencesRequest = createServerFn({ method: "POST" })
 export const setOwnRoleRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .inputValidator(z.object({ role: z.enum(["researcher", "participant"]) }))
-  .handler(async ({ data }): Promise<MutationResponse> =>
+  .handler(async ({ data }): Promise<MutationResponse<SnapshotProfile>> =>
     runAsUser(async (db, actor) => db.setOwnRole(actor, data.role)),
   );
 
