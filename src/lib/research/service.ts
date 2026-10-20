@@ -39,7 +39,7 @@ import {
   updateProfileRequest,
   withdrawFromStudyRequest,
 } from "./server.ts";
-import type { AppSnapshot, MutationResponse } from "./server.ts";
+import type { AppSnapshot, MutationResponse, SignInMethods } from "./server.ts";
 import { useDemoStore } from "./store.ts";
 import type {
   Application,
@@ -55,7 +55,20 @@ import type {
   StudyFormValues,
 } from "./types.ts";
 
-export type { AppSnapshot };
+export type { AppSnapshot, SignInMethods };
+
+/**
+ * The sign-in methods this deployment offers.
+ *
+ * Empty until the server has answered — the sign-in screen waits for it
+ * rather than offering a method that would fail.
+ */
+let liveMethods: SignInMethods = { emailPassword: false, providers: [] };
+
+/** The sign-in methods the server reported. */
+export function getSignInMethods(): SignInMethods {
+  return liveMethods;
+}
 
 /** A signed-in user's own record. */
 export interface Viewer {
@@ -197,11 +210,11 @@ const browserService: ResearchService = {
   mode: "browser",
 
   async initialize() {
-    return { mode: "browser", signedIn: false, state: null };
+    return { mode: "browser", signedIn: false, state: null, methods: liveMethods };
   },
 
   async refresh() {
-    return { mode: "browser", signedIn: false, state: null };
+    return { mode: "browser", signedIn: false, state: null, methods: liveMethods };
   },
 
   async upsertDraft(ownerId, values, studyId) {
@@ -357,6 +370,7 @@ export const researchService: ResearchService = {
   },
   initialize: async () => {
     const snapshot = await loadAppSnapshot({ data: {} });
+    liveMethods = snapshot.methods ?? liveMethods;
     if (snapshot.mode === "server") {
       setDataMode("server");
       applySnapshot(snapshot);
@@ -367,7 +381,7 @@ export const researchService: ResearchService = {
   },
   refresh: async () => {
     if (getDataMode() !== "server") {
-      return { mode: "browser", signedIn: false, state: null };
+      return { mode: "browser", signedIn: false, state: null, methods: liveMethods };
     }
     const snapshot = await loadAppSnapshot({ data: {} });
     applySnapshot(snapshot);

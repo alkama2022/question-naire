@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/feedback";
 import { Field, Select, Textarea } from "@/components/ui/field";
 import { formatDateTime } from "@/lib/research/format";
 import { recruitmentSnapshot, weeklySeries } from "@/lib/research/metrics";
+import { researchService } from "@/lib/research/service";
 import { useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
 import type { QualityLabel, ResponseRecord } from "@/lib/research/types";
 import { QUALITY_LABEL } from "@/lib/research/types";
@@ -213,8 +214,8 @@ function ResponseRow({ record, actorId }: { record: ResponseRecord; actorId: str
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => {
-                  const result = useDemoStore.getState().markCompleted(actorId, record.id);
+                onClick={async () => {
+                  const result = await researchService.markCompleted(actorId, record.id);
                   if (result.ok) toast.success(result.message);
                   else toast.error(result.error);
                 }}
@@ -239,8 +240,8 @@ function ResponseRow({ record, actorId }: { record: ResponseRecord; actorId: str
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => {
-                const result = useDemoStore.getState().setQuality(actorId, record.id, quality, note);
+              onClick={async () => {
+                const result = await researchService.setQuality(actorId, record.id, quality, note);
                 if (result.ok) toast.success(result.message);
                 else toast.error(result.error);
               }}

@@ -9,6 +9,7 @@ import { Checkbox, Field, Input, Textarea } from "@/components/ui/field";
 import { Modal } from "@/components/ui/overlay";
 import { OriginNote } from "@/components/layout/shells";
 import { deadlinePhrase, formatDate, researcherLabel } from "@/lib/research/format";
+import { researchService } from "@/lib/research/service";
 import { useDemoStore, useSessionUser } from "@/lib/research/store";
 import { contactSchema } from "@/lib/research/validators";
 
@@ -198,9 +199,9 @@ function ParticipationCard({ studyId }: { studyId: string }) {
             className="mt-4"
             variant="secondary"
             busy={busy}
-            onClick={() => {
+            onClick={async () => {
               setBusy(true);
-              const result = useDemoStore.getState().withdrawFromStudy(user.id, study.id);
+              const result = await researchService.withdrawFromStudy(user.id, study.id);
               setBusy(false);
               if (result.ok) toast.success(result.message);
               else toast.error(result.error);
@@ -243,16 +244,16 @@ function ParticipationCard({ studyId }: { studyId: string }) {
             agree={agree}
             setAgree={setAgree}
             busy={busy}
-            onConsent={() => {
+            onConsent={async () => {
               setBusy(true);
-              const result = useDemoStore.getState().consentToStudy(user.id, study.id);
+              const result = await researchService.consentToStudy(user.id, study.id);
               setBusy(false);
               if (result.ok) toast.success(result.message);
               else toast.error(result.error);
             }}
-            onDecline={() => {
+            onDecline={async () => {
               setBusy(true);
-              const result = useDemoStore.getState().declineStudy(user.id, study.id);
+              const result = await researchService.declineStudy(user.id, study.id);
               setBusy(false);
               if (result.ok) toast.success(result.message);
               else toast.error(result.error);
@@ -305,20 +306,20 @@ function ParticipationCard({ studyId }: { studyId: string }) {
         setAgree={setAgree}
         busy={busy}
         blocked={!eligible}
-        onConsent={() => {
+        onConsent={async () => {
           if (!eligible || !readOk || !voluntaryOk || !withdrawOk || !agree) {
             toast.error("Complete the eligibility answers and all consent statements first.");
             return;
           }
           setBusy(true);
-          const result = useDemoStore.getState().consentToStudy(user.id, study.id);
+          const result = await researchService.consentToStudy(user.id, study.id);
           setBusy(false);
           if (result.ok) toast.success(result.message);
           else toast.error(result.error);
         }}
-        onDecline={() => {
+        onDecline={async () => {
           setBusy(true);
-          const result = useDemoStore.getState().declineStudy(user.id, study.id);
+          const result = await researchService.declineStudy(user.id, study.id);
           setBusy(false);
           if (result.ok) toast.success(result.message);
           else toast.error(result.error);
@@ -413,7 +414,7 @@ function ReportDialog({
     <Modal open={open} onOpenChange={onOpenChange} title="Report a problem" description="This stays in the demo inbox on this browser. It is not emailed.">
       <form
         className="grid gap-3"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           const parsed = contactSchema.safeParse({
             name: user?.name || "Anonymous",
@@ -425,7 +426,7 @@ function ReportDialog({
             setError(parsed.error.issues[0]?.message ?? "Check the report");
             return;
           }
-          const result = useDemoStore.getState().addIssue({
+          const result = await researchService.addIssue({
             source: "report",
             name: parsed.data.name,
             email: parsed.data.email,

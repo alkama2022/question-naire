@@ -28,6 +28,35 @@ export interface AppSnapshot {
   mode: "browser" | "server";
   signedIn: boolean;
   state: ServerState | null;
+  /**
+   * The sign-in methods the server actually has live.
+   *
+   * The browser never guesses: email/password and the upstream providers are
+   * only offered when the server is configured for them.
+   */
+  methods: SignInMethods;
+}
+
+/** The sign-in methods this deployment offers. */
+export interface SignInMethods {
+  emailPassword: boolean;
+  /** Upstream provider ids (`grok-google`, `grok-x`) the broker can broker. */
+  providers: string[];
+}
+
+const NO_METHODS: SignInMethods = { emailPassword: false, providers: [] };
+
+/** The sign-in methods the server has configured. */
+async function liveMethods(): Promise<SignInMethods> {
+  const [{ authConfigured }, { emailAndPasswordEnabled }, { GROK_PROVIDERS }] = await Promise.all([
+    import("@/lib/auth/server.ts"),
+    import("@/lib/auth/email-password.ts"),
+    import("@/lib/auth/providers.ts"),
+  ]);
+  return {
+    emailPassword: emailAndPasswordEnabled,
+    providers: authConfigured ? GROK_PROVIDERS.map((provider) => provider.providerId) : [],
+  };
 }
 
 /** The result of a mutation, plus the refreshed snapshot. */
@@ -101,13 +130,14 @@ async function currentSession(): Promise<{ id: string; email: string; name: stri
  */
 async function snapshotFor(session: { id: string; email: string; name: string } | null) {
   const { buildState, ensureProfile } = await import("./db.server.ts");
+  const methods = await liveMethods();
   if (!session) {
     const state = await buildState(null);
-    return { mode: "server" as const, signedIn: false, state };
+    return { mode: "server" as const, signedIn: false, state, methods };
   }
   const profile = await ensureProfile(session.id, session.email, session.name);
   const state = await buildState(profile);
-  return { mode: "server" as const, signedIn: true, state };
+  return { mode: "server" as const, signedIn: true, state, methods };
 }
 
 /**
@@ -149,7 +179,7 @@ async function runAsUser<T>(
 export const loadAppSnapshot = createServerFn({ method: "POST" }).handler(
   async (): Promise<AppSnapshot> => {
     if (!serverModeEnabled()) {
-      return { mode: "browser", signedIn: false, state: null };
+      return { mode: "browser", signedIn: false, state: null, methods: NO_METHODS };
     }
     const session = await currentSession();
     return snapshotFor(session);

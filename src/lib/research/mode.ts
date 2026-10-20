@@ -16,10 +16,16 @@
 export type DataMode = "browser" | "server";
 
 let currentMode: DataMode = "browser";
+let resolved = false;
+
+const listeners = new Set<() => void>();
 
 /** Switch the app between the demo path and the server path. */
 export function setDataMode(mode: DataMode): void {
+  if (currentMode === mode && resolved) return;
   currentMode = mode;
+  resolved = true;
+  for (const listener of listeners) listener();
 }
 
 /** The path the app is running on. */
@@ -31,3 +37,17 @@ export function getDataMode(): DataMode {
 export function isServerMode(): boolean {
   return currentMode === "server";
 }
+
+/** True once the server has answered which path is live. */
+export function isDataModeResolved(): boolean {
+  return resolved;
+}
+
+/** Subscribe to mode changes (used by the React hook below). */
+export function subscribeToDataMode(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+

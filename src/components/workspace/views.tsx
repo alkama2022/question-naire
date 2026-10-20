@@ -10,6 +10,7 @@ import { ConfirmDialog, Modal } from "@/components/ui/overlay";
 import { RecruitmentDetail } from "@/components/research/recruitment-panel";
 import { deadlinePhrase, formatDate, formatDateTime } from "@/lib/research/format";
 import { recruitmentSnapshot } from "@/lib/research/metrics";
+import { researchService } from "@/lib/research/service";
 import { useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
 import type { IssueStatus, Study } from "@/lib/research/types";
 import { STATUS_LABEL } from "@/lib/research/types";
@@ -542,9 +543,9 @@ export function ReviewDetail({ studyId }: { studyId: string }) {
         <Button
           className="mt-3"
           variant={action === "reject" ? "danger" : "primary"}
-          onClick={() => {
+          onClick={async () => {
             if (!action || action === "approve" || action === "pause") return;
-            const result = useDemoStore.getState().reviewStudy(actor.id, study.id, action, note);
+            const result = await researchService.reviewStudy(actor.id, study.id, action, note);
             if (result.ok) {
               toast.success(result.message);
               setAction(null);
@@ -567,11 +568,11 @@ export function ReviewDetail({ studyId }: { studyId: string }) {
             : "Pausing stops new consent. Because this is an admin pause, the researcher cannot resume it themselves in the demo."
         }
         confirmLabel={action === "approve" ? "Approve" : "Pause"}
-        onConfirm={() => {
+        onConfirm={async () => {
           const result =
             action === "approve"
-              ? useDemoStore.getState().reviewStudy(actor.id, study.id, "approve", "")
-              : useDemoStore.getState().setPaused(actor.id, study.id, true);
+              ? await researchService.reviewStudy(actor.id, study.id, "approve", "")
+              : await researchService.setPaused(actor.id, study.id, true);
           if (result.ok) toast.success(result.message);
           else toast.error(result.error);
           setAction(null);
@@ -738,9 +739,9 @@ export function IssuesPanel() {
         title="Update this report?"
         body="The new status is stored in this browser only."
         confirmLabel="Update"
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!actor || !pending) return;
-          const result = useDemoStore.getState().setIssueStatus(actor.id, pending.id, pending.status);
+          const result = await researchService.setIssueStatus(actor.id, pending.id, pending.status);
           if (result.ok) toast.success(result.message);
           else toast.error(result.error);
           setPending(null);

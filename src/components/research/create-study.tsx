@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, ProgressBar } from "@/components/ui/card";
 import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/field";
+import { researchService } from "@/lib/research/service";
 import { useSessionUser, toForm, useDemoStore } from "@/lib/research/store";
 import { CATEGORIES, METHODS } from "@/lib/research/types";
 import type { StudyFormValues } from "@/lib/research/types";
@@ -58,9 +59,9 @@ export function CreateStudyForm({ studyId }: { studyId?: string }) {
     return <p>This study can no longer be edited. Only drafts and rejected requests stay editable.</p>;
   }
 
-  function saveDraft() {
+  async function saveDraft() {
     setBusy("draft");
-    const result = useDemoStore.getState().upsertDraft(user!.id, values, existing?.id);
+    const result = await researchService.upsertDraft(user!.id, values, existing?.id);
     setBusy(null);
     if (!result.ok) {
       toast.error(result.error);
