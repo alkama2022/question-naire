@@ -718,6 +718,8 @@ function originLabel(origin: string) {
 }
 
 export function ContactForm() {
+  const mode = useDataMode();
+  const server = mode === "server";
   const user = useSessionUser();
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -728,10 +730,13 @@ export function ContactForm() {
   if (done) {
     return (
       <Card className="p-5">
-        <h2 className="font-display text-xl font-semibold">Saved in this browser</h2>
+        <h2 className="font-display text-xl font-semibold">
+          {server ? "Message sent to the team" : "Saved in this browser"}
+        </h2>
         <p className="mt-2 text-sm text-ink-soft">
-          The message is in the demo inbox. No email was sent. An admin preview can see it under
-          reported issues.
+          {server
+            ? "An administrator can see it under reported issues. No email was sent — the message stays in the workspace."
+            : "The message is in the demo inbox. No email was sent. An admin preview can see it under reported issues."}
         </p>
       </Card>
     );
@@ -747,15 +752,20 @@ export function ContactForm() {
             setErrors(issuesToMap(parsed.error.issues));
             return;
           }
-          const result = useDemoStore.getState().addIssue({
-            source: "contact",
-            name: parsed.data.name,
-            email: parsed.data.email,
-            subject: parsed.data.subject,
-            body: parsed.data.message,
-          });
-          if (result.ok) setDone(true);
-          else toast.error(result.error);
+          void (async () => {
+            const input = {
+              source: "contact" as const,
+              name: parsed.data.name,
+              email: parsed.data.email,
+              subject: parsed.data.subject,
+              body: parsed.data.message,
+            };
+            const result = server
+              ? await researchService.addIssue(input)
+              : useDemoStore.getState().addIssue(input);
+            if (result.ok) setDone(true);
+            else toast.error(result.error);
+          })();
         }}
       >
         <Field label="Name" htmlFor="contact-name" error={errors.name}>
@@ -775,7 +785,7 @@ export function ContactForm() {
             onChange={(event) => setMessage(event.target.value)}
           />
         </Field>
-        <Button type="submit">Save message in this browser</Button>
+        <Button type="submit">{server ? "Send message" : "Save message in this browser"}</Button>
       </form>
     </Card>
   );

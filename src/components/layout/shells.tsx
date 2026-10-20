@@ -23,8 +23,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/overlay";
+import { signOut as signOutOfAccount } from "@/lib/auth/client";
 import { noticesFor, useDemoStore, useSessionUser } from "@/lib/research/store";
 import type { Role } from "@/lib/research/types";
+import { useDataMode } from "@/lib/research/use-data-mode";
 import { cn } from "@/lib/utils";
 
 const publicLinks = [
@@ -36,7 +38,23 @@ const publicLinks = [
   { to: "/contact", label: "Contact" },
 ] as const;
 
+/**
+ * The banner across the top.
+ *
+ * It says exactly where the records live — this browser (the demo) or the
+ * server (the production path) — so nobody is left guessing whether a study
+ * request was really saved.
+ */
 export function DemoBanner() {
+  const mode = useDataMode();
+  if (mode === "server") {
+    return (
+      <p className="bg-brand px-4 py-2 text-center text-sm text-brand-foreground">
+        <span className="font-semibold">Live workspace.</span> Accounts and study records are stored
+        on the server, so they are the same on every device you sign in from.
+      </p>
+    );
+  }
   return (
     <p className="bg-brand px-4 py-2 text-center text-sm text-brand-foreground">
       <span className="font-semibold">Demo mode.</span> Accounts and study records stay in this
@@ -254,6 +272,8 @@ export function DashboardShell({
   role: Role;
   children: ReactNode;
 }) {
+  const mode = useDataMode();
+  const server = mode === "server";
   const user = useSessionUser();
   const notices = useDemoStore((state) => state.notices);
   const unread = noticesFor(user, notices).filter((item) => !item.read).length;
@@ -355,16 +375,24 @@ export function DashboardShell({
               {user ? (
                 <>
                   <span className="font-medium text-ink">{user.name}</span>
-                  <span> · {roleLabel(user.role)}</span>
-                  {user.origin === "sample" ? " · Sample account" : " · Created in this browser"}
+                  <span> · {roleLabel(user.role, server)}</span>
+                  {server
+                    ? user.origin === "sample"
+                      ? " · Sample account"
+                      : " · Account on the server"
+                    : user.origin === "sample"
+                      ? " · Sample account"
+                      : " · Created in this browser"}
                 </>
+              ) : server ? (
+                "Signed out"
               ) : (
                 "No demo session"
               )}
             </p>
             {role === "admin" ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-warn">
-                <Shield className="size-3.5" aria-hidden /> Admin preview
+                <Shield className="size-3.5" aria-hidden /> {server ? "Administrator" : "Admin preview"}
               </span>
             ) : null}
           </div>
