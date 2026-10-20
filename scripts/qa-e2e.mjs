@@ -107,6 +107,11 @@ async function main() {
     if (msg.type() === "error") errors.push(msg.text());
   });
   page.on("pageerror", (err) => errors.push(String(err?.message || err)));
+  page.on("response", async (response) => {
+    if (response.status() < 400) return;
+    const body = await response.text().catch(() => "");
+    errors.push(`[http ${response.status()}] ${response.url().slice(0, 90)} ${body.slice(0, 200)}`);
+  });
 
   try {
     /* 1 — register a researcher ------------------------------------------- */
@@ -241,6 +246,11 @@ async function main() {
       if (msg.type() === "error") errors.push(`[admin] ${msg.text()}`);
     });
     adminPage.on("pageerror", (err) => errors.push(`[admin] ${String(err?.message || err)}`));
+    adminPage.on("response", async (response) => {
+      if (response.status() < 400) return;
+      const body = await response.text().catch(() => "");
+      errors.push(`[admin http ${response.status()}] ${response.url().slice(0, 90)} ${body.slice(0, 300)}`);
+    });
     // Create the administrator account (its address is in ADMIN_EMAILS, so the
     // server gives it the administrator role). An account that already exists
     // is fine — the sign-in below is what matters.
@@ -262,10 +272,17 @@ async function main() {
     const pending = adminPage.getByText("Sleep and screen time among QA students").first();
     await pending.waitFor({ timeout: 60000 });
     record("the request reaches the administrator queue", true);
-    await pending.click();
-    await adminPage.waitForSelector("text=Approve", { timeout: 60000 });
-    await adminPage.getByRole("button", { name: "Approve", exact: true }).click();
-    await adminPage.waitForTimeout(2500);
+    // The queue links to the review screen with a "Review" button.
+    await adminPage
+      .locator("h2", { hasText: "Sleep and screen time among QA students" })
+      .locator("xpath=../..")
+      .getByRole("link", { name: "Review" })
+      .click();
+    await adminPage.waitForURL(/\/admin\/reviews\/.+/, { timeout: 60000 });
+    const approve = adminPage.getByRole("button", { name: "Approve", exact: true });
+    await approve.waitFor({ timeout: 60000 });
+    await approve.click();
+    await adminPage.waitForTimeout(3000);
     record("the administrator approves it", true);
     await adminContext.close();
   } catch (error) {

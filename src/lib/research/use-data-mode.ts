@@ -22,11 +22,15 @@ export function useDataMode(): DataMode {
  *
  * Sign-in screens wait for this before offering a method, so nobody is shown
  * a button that cannot work.
+ *
+ * The server snapshot is `false`: the server has not asked itself, and the
+ * first client render must match the server-rendered markup exactly — a
+ * mismatch here is a hydration error, not a cosmetic one.
  */
 export function useDataModeResolved(): boolean {
   return useSyncExternalStore(
     subscribeToDataMode,
     isDataModeResolved,
-    () => true,
+    () => false,
   );
 }

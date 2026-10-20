@@ -437,7 +437,7 @@ export function AdminOverview() {
         <Stat label="Pending requests" value={pending.length} />
         <Stat label="Active studies" value={studies.filter((study) => study.status === "active").length} />
         <Stat label="Open reports" value={issues.filter((issue) => issue.status !== "closed").length} />
-        <Stat label="Demo accounts" value={users.filter((user) => user.role !== "admin").length} />
+        <Stat label={server ? "Accounts" : "Demo accounts"} value={users.filter((user) => user.role !== "admin").length} />
       </div>
       <Card className="p-5">
         <h2 className="font-display text-xl font-semibold">Waiting for review</h2>

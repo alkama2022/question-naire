@@ -10,7 +10,7 @@ import { roleHome } from "@/lib/research/format";
 import { getSignInMethods, researchService } from "@/lib/research/service";
 import { noticesFor, useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
 import { DEMO_PASSWORD } from "@/lib/research/types";
-import { useDataMode } from "@/lib/research/use-data-mode";
+import { useDataMode, useDataModeResolved } from "@/lib/research/use-data-mode";
 import {
   contactSchema,
   localPasswordSchema,
@@ -45,6 +45,7 @@ export function LoginForm() {
 function AccountLoginForm() {
   const navigate = useNavigate();
   const methods = getSignInMethods();
+  const resolved = useDataModeResolved();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -116,7 +117,7 @@ function AccountLoginForm() {
           </Link>
         </p>
       </Card>
-      {methods.providers.length ? (
+      {resolved && methods.providers.length ? (
         <Card className="grid gap-3 p-5">
           <h2 className="font-display text-xl font-semibold">Or continue with</h2>
           <div className="grid gap-2">
