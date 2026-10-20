@@ -20,9 +20,9 @@
  * `process.env`, which is why the merge has to happen before Vite starts.
  */
 import { spawn } from "node:child_process";
-import { readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { constants as osConstants } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const APP_ENV_REL_PATH = ".grok/app-env.json";
@@ -104,6 +104,52 @@ export function isMainModule(moduleUrl) {
   }
 }
 
+/**
+ * Resolve a command to something this platform can actually run.
+ *
+ * `npm run` puts `node_modules/.bin` on the PATH, so `vite` resolves on
+ * Linux. Windows has no extensionless executables, and a `.cmd` shim can only
+ * be started through a shell — which re-introduces quoting problems for the
+ * arguments. So the `.bin` shim is read instead: it names the JavaScript entry
+ * point, which this script runs with the same Node binary. No shell, no
+ * quoting, same behaviour on both platforms.
+ */
+export function resolveCommand(command, root) {
+  if (isAbsolute(command) || command.includes("/") || command.includes("\\")) {
+    return { command, args: [] };
+  }
+  const shim = join(root, "node_modules", ".bin", command);
+  if (!existsSync(shim)) return { command, args: [] };
+  const entry = readShimEntry(shim);
+  if (entry) return { command: process.execPath, args: [entry] };
+  // Windows-only shim (`.cmd`): fall back to the shell.
+  const windowsShim = `${shim}.cmd`;
+  if (process.platform === "win32" && existsSync(windowsShim)) {
+    return { command: windowsShim, args: [], shell: true };
+  }
+  return { command: shim, args: [] };
+}
+
+/**
+ * The JavaScript entry point a `.bin` shim points at.
+ *
+ * The shim is a small shell script whose last line execs node with the
+ * package's bin file, e.g. `exec node "$basedir/../vite/bin/vite.js" "$@"`.
+ */
+function readShimEntry(shim) {
+  let text = "";
+  try {
+    text = readFileSync(shim, "utf8");
+  } catch {
+    return null;
+  }
+  const match = text.match(/(\$\{?basedir\}?\/[^"'\s]+\.js)/);
+  if (!match) return null;
+  const relative = match[1].replace(/\$\{?basedir\}?/g, dirname(shim));
+  const resolved = relative.replace(/\//g, process.platform === "win32" ? "\\" : "/");
+  return existsSync(resolved) ? resolved : null;
+}
+
 function main(argv) {
   const [command, ...args] = argv;
   if (!command) {
@@ -111,7 +157,12 @@ function main(argv) {
     process.exit(2);
   }
   const env = mergeAppEnv(readAppEnv(projectRoot()), process.env);
-  const child = spawn(command, args, { stdio: "inherit", env });
+  const resolved = resolveCommand(command, projectRoot());
+  const child = spawn(resolved.command, [...resolved.args, ...args], {
+    stdio: "inherit",
+    env,
+    shell: resolved.shell === true,
+  });
   // The dev server is long-running and is stopped by signalling this wrapper.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
     process.on(signal, () => child.kill(signal));

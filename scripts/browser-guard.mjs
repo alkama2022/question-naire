@@ -5,9 +5,22 @@
  * path from argv, so unchecked they will render `file:///root/.grok/auth.json`
  * into a PNG the agent can read, and write it anywhere.
  */
-import { resolve, sep } from "node:path";
+import { dirname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const LOOPBACK_HOSTNAMES = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
+
+/**
+ * Where the workspace lives.
+ *
+ * The sandbox mounts the project at `/workspace`; a checkout on a developer
+ * machine lives wherever it was cloned. Screenshots and verdict files are
+ * written under the project root either way — never outside it.
+ */
+export const WORKSPACE_ROOT =
+  process.platform === "win32"
+    ? resolve(dirname(fileURLToPath(import.meta.url)), "..")
+    : "/workspace";
 
 /** http/https loopback only, else exit 1. `BROWSER_ALLOW_EXTERNAL_HOST=1` opts out. */
 export function checkedUrl(url) {

@@ -163,7 +163,7 @@ const initialData: DataSlice = {
  * here, so a shared record (another person's name, a consent record) is never
  * cached in this browser's storage.
  */
-const demoStorage = createJSONStorage<DemoStore>(() => ({
+const demoStorage = createJSONStorage(() => ({
   getItem: (name) => {
     if (isServerMode()) return null;
     try {

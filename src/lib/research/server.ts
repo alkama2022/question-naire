@@ -195,7 +195,7 @@ export const loadAppSnapshot = createServerFn({ method: "POST" }).handler(
 
 export const saveStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(studyValuesSchema)
+  .validator(studyValuesSchema)
   .handler(async ({ data }): Promise<MutationResponse<{ id: string }>> =>
     runAsUser(async (db, actor) => {
       const { studyId, ...values } = data;
@@ -205,14 +205,14 @@ export const saveStudyRequest = createServerFn({ method: "POST" })
 
 export const submitStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ studyId: z.string().min(1) }))
+  .validator(z.object({ studyId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.submitStudy(actor, data.studyId)),
   );
 
 export const reviewStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       studyId: z.string().min(1),
       action: z.enum(["approve", "reject", "changes"]),
@@ -225,7 +225,7 @@ export const reviewStudyRequest = createServerFn({ method: "POST" })
 
 export const changeStudyStatus = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       studyId: z.string().min(1),
       action: z.enum(["open", "pause", "resume", "complete"]),
@@ -237,28 +237,28 @@ export const changeStudyStatus = createServerFn({ method: "POST" })
 
 export const consentToStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ studyId: z.string().min(1) }))
+  .validator(z.object({ studyId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.consentToStudy(actor, data.studyId)),
   );
 
 export const declineStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ studyId: z.string().min(1) }))
+  .validator(z.object({ studyId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.declineStudy(actor, data.studyId)),
   );
 
 export const withdrawFromStudyRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ studyId: z.string().min(1) }))
+  .validator(z.object({ studyId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.withdrawFromStudy(actor, data.studyId)),
   );
 
 export const setResponseQualityRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       responseId: z.string().min(1),
       quality: z.enum(["pending", "accepted", "excluded", "needs_review"]),
@@ -273,14 +273,14 @@ export const setResponseQualityRequest = createServerFn({ method: "POST" })
 
 export const markResponseCompleteRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ responseId: z.string().min(1) }))
+  .validator(z.object({ responseId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.markResponseComplete(actor, data.responseId)),
   );
 
 export const updateProfileRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(
+  .validator(
     z.object({
       name: z.string().trim().min(2, "Enter your name"),
       institution: z.string().trim().max(160),
@@ -293,27 +293,27 @@ export const updateProfileRequest = createServerFn({ method: "POST" })
 
 export const updatePreferencesRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ notifyEmail: z.boolean(), notifyInApp: z.boolean() }))
+  .validator(z.object({ notifyEmail: z.boolean(), notifyInApp: z.boolean() }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.updatePreferences(actor, data)),
   );
 
 export const setOwnRoleRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ role: z.enum(["researcher", "participant"]) }))
+  .validator(z.object({ role: z.enum(["researcher", "participant"]) }))
   .handler(async ({ data }): Promise<MutationResponse<SnapshotProfile>> =>
     runAsUser(async (db, actor) => db.setOwnRole(actor, data.role)),
   );
 
 export const suspendUserRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ userId: z.string().min(1), suspended: z.boolean() }))
+  .validator(z.object({ userId: z.string().min(1), suspended: z.boolean() }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.suspendUser(actor, data.userId, data.suspended)),
   );
 
 export const addIssueRequest = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       source: z.enum(["report", "contact"]),
       name: z.string().trim().min(2, "Enter your name"),
@@ -332,14 +332,14 @@ export const addIssueRequest = createServerFn({ method: "POST" })
 
 export const setIssueStatusRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ issueId: z.string().min(1), status: z.enum(["open", "reviewing", "closed"]) }))
+  .validator(z.object({ issueId: z.string().min(1), status: z.enum(["open", "reviewing", "closed"]) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.setIssueStatus(actor, data.issueId, data.status)),
   );
 
 export const markNoticeReadRequest = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator(z.object({ noticeId: z.string().min(1) }))
+  .validator(z.object({ noticeId: z.string().min(1) }))
   .handler(async ({ data }): Promise<MutationResponse> =>
     runAsUser(async (db, actor) => db.markNoticeRead(actor, data.noticeId)),
   );

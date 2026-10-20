@@ -15,7 +15,17 @@
  */
 export type DataMode = "browser" | "server";
 
-let currentMode: DataMode = "browser";
+/**
+ * The posture this build was made with.
+ *
+ * `VITE_AUTH_ENABLED` is a build-time value, so the first render already
+ * knows which path is live — no flash of the wrong banner while the server
+ * answers. The server's own answer still has the final word at runtime.
+ */
+const buildMode: DataMode =
+  import.meta.env.VITE_AUTH_ENABLED !== "false" ? "server" : "browser";
+
+let currentMode: DataMode = buildMode;
 let resolved = false;
 
 const listeners = new Set<() => void>();

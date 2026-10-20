@@ -458,13 +458,13 @@ async function listUsersFor(actor: Actor | null, studies: Study[]): Promise<Demo
   if (!actor) {
     const ownerIds = [...new Set(studies.map((study) => study.ownerId))];
     if (!ownerIds.length) return [];
-    const rows = await sql`
+    const rows = await sql<ProfileRow>`
       select ${sql.raw(PROFILE_COLUMNS)} from rc_profiles where user_id in (${sql.join(ownerIds)})
     `;
     return rows.map((row) => toPublicAccount(toActor(row), false));
   }
   if (actor.role === "admin") {
-    const rows = await sql`select ${sql.raw(PROFILE_COLUMNS)} from rc_profiles order by created_at desc`;
+    const rows = await sql<ProfileRow>`select ${sql.raw(PROFILE_COLUMNS)} from rc_profiles order by created_at desc`;
     return rows.map((row) => toPublicAccount(toActor(row), true));
   }
   const visibleIds = new Set<string>([actor.userId]);
@@ -478,7 +478,7 @@ async function listUsersFor(actor: Actor | null, studies: Study[]): Promise<Demo
   }
   const ids = [...visibleIds];
   if (!ids.length) return [];
-  const rows = await sql`
+  const rows = await sql<ProfileRow>`
     select ${sql.raw(PROFILE_COLUMNS)} from rc_profiles where user_id in (${sql.join(ids)})
   `;
   return rows.map((row) => toPublicAccount(toActor(row), row.userId === actor.userId));

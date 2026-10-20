@@ -71,7 +71,7 @@ export function CreateStudyForm({ studyId }: { studyId?: string }) {
     void navigate({ to: "/researcher/studies" });
   }
 
-  function submit() {
+  async function submit() {
     const found = validateFullStudy(values);
     if (Object.keys(found).length) {
       setErrors(found);
@@ -258,11 +258,11 @@ export function CreateStudyForm({ studyId }: { studyId?: string }) {
           {step < 3 ? (
             <Button onClick={goNext}>Continue</Button>
           ) : (
-            <Button busy={busy === "submit"} onClick={submit}>
+            <Button busy={busy === "submit"} onClick={() => void submit()}>
               Submit for review
             </Button>
           )}
-          <Button variant="ghost" busy={busy === "draft"} onClick={saveDraft}>
+          <Button variant="ghost" busy={busy === "draft"} onClick={() => void saveDraft()}>
             Save draft
           </Button>
         </div>

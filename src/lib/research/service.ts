@@ -51,6 +51,7 @@ import type {
   QualityLabel,
   ResponseRecord,
   Result,
+  SnapshotProfile,
   Study,
   StudyFormValues,
 } from "./types.ts";
@@ -186,7 +187,7 @@ export interface ResearchService {
   updateProfile(
     userId: string,
     patch: { name: string; institution: string; programme: string },
-  ): Promise<Result>;
+  ): Promise<Result<SnapshotProfile>>;
   updatePrefs(
     userId: string,
     prefs: { notifyEmail: boolean; notifyInApp: boolean },
@@ -203,7 +204,7 @@ export interface ResearchService {
   setIssueStatus(actorId: string, issueId: string, status: IssueStatus): Promise<Result>;
   markNoticeRead(userId: string, noticeId: string): Promise<Result>;
   markAllRead(userId: string): Promise<Result>;
-  setOwnRole(role: "researcher" | "participant"): Promise<Result>;
+  setOwnRole(role: "researcher" | "participant"): Promise<Result<SnapshotProfile>>;
 }
 
 const browserService: ResearchService = {
@@ -252,7 +253,8 @@ const browserService: ResearchService = {
     return useDemoStore.getState().markCompleted(actorId, responseId);
   },
   async updateProfile(userId, patch) {
-    return useDemoStore.getState().updateProfile(userId, patch);
+    const result = useDemoStore.getState().updateProfile(userId, patch);
+    return result.ok ? { ok: true, message: result.message } : { ok: false, error: result.error };
   },
   async updatePrefs(userId, prefs) {
     return useDemoStore.getState().updatePrefs(userId, prefs);
@@ -283,14 +285,14 @@ const serverService: ResearchService = {
   mode: "server",
 
   async initialize() {
-    const snapshot = await loadAppSnapshot({ data: {} });
+    const snapshot = await loadAppSnapshot();
     setDataMode("server");
     applySnapshot(snapshot);
     return snapshot;
   },
 
   async refresh() {
-    const snapshot = await loadAppSnapshot({ data: {} });
+    const snapshot = await loadAppSnapshot();
     applySnapshot(snapshot);
     return snapshot;
   },
@@ -368,7 +370,7 @@ export const researchService: ResearchService = {
     return getDataMode();
   },
   initialize: async () => {
-    const snapshot = await loadAppSnapshot({ data: {} });
+    const snapshot = await loadAppSnapshot();
     liveMethods = snapshot.methods ?? liveMethods;
     if (snapshot.mode === "server") {
       setDataMode("server");
@@ -382,7 +384,7 @@ export const researchService: ResearchService = {
     if (getDataMode() !== "server") {
       return { mode: "browser", signedIn: false, state: null, methods: liveMethods };
     }
-    const snapshot = await loadAppSnapshot({ data: {} });
+    const snapshot = await loadAppSnapshot();
     applySnapshot(snapshot);
     return snapshot;
   },
