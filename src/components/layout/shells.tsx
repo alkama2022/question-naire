@@ -404,12 +404,21 @@ export function DashboardShell({
       <ConfirmDialog
         open={logoutOpen}
         onOpenChange={setLogoutOpen}
-        title="Log out of this demo session?"
-        body="This only clears the session in this browser. Sample records stay on this device until you reset them."
+        title={server ? "Log out of your account?" : "Log out of this demo session?"}
+        body={
+          server
+            ? "Your session on this device ends. Your account and its records stay where they are."
+            : "This only clears the session in this browser. Sample records stay on this device until you reset them."
+        }
         confirmLabel="Log out"
         onConfirm={() => {
-          useDemoStore.getState().logout();
           setLogoutOpen(false);
+          if (server) {
+            // The server holds the session — it has to end it, not the browser.
+            void signOutOfAccount("/login").catch(() => undefined);
+            return;
+          }
+          useDemoStore.getState().logout();
         }}
       />
     </div>
@@ -465,27 +474,37 @@ function NavLink({
   );
 }
 
-function roleLabel(role: Role) {
+function roleLabel(role: Role, server = false) {
   if (role === "researcher") return "Researcher";
   if (role === "participant") return "Participant";
-  return "Administrator preview";
+  return server ? "Administrator" : "Administrator preview";
 }
 
 export function RoleGate({ role, children }: { role: Role; children: ReactNode }) {
+  const mode = useDataMode();
+  const server = mode === "server";
   const user = useSessionUser();
   if (!user) {
     return (
       <GateCard
-        title="This workspace needs a demo session"
-        body={`Open a ${role} session to use this area. Registration does not create a secure account.`}
+        title={server ? "Sign in to use this workspace" : "This workspace needs a demo session"}
+        body={
+          server
+            ? `Sign in with a ${role} account to use this area.`
+            : `Open a ${role} session to use this area. Registration does not create a secure account.`
+        }
       />
     );
   }
   if (user.suspended) {
     return (
       <GateCard
-        title="This demo account is suspended"
-        body="A local admin preview suspended it. Restore it from the admin preview, or reset demo data in a sample session."
+        title={server ? "This account is suspended" : "This demo account is suspended"}
+        body={
+          server
+            ? "An administrator suspended it. Ask them to restore the account."
+            : "A local admin preview suspended it. Restore it from the admin preview, or reset demo data in a sample session."
+        }
       />
     );
   }
@@ -493,7 +512,7 @@ export function RoleGate({ role, children }: { role: Role; children: ReactNode }
     return (
       <GateCard
         title="This area is for a different role"
-        body={`You are in a ${roleLabel(user.role).toLowerCase()} session. Switch session to open the ${role} workspace. Administrative access cannot be chosen during registration.`}
+        body={`You are in a ${roleLabel(user.role, server).toLowerCase()} session. Switch session to open the ${role} workspace. Administrative access cannot be chosen during registration.`}
       />
     );
   }

@@ -90,6 +90,8 @@ const studyValuesSchema = z.object({
   informationStatement: z.string(),
   privacyAck: z.boolean(),
   approvalAck: z.boolean(),
+  /** The study being edited — omitted when creating a new one. */
+  studyId: z.string().optional(),
 });
 
 /* -------------------------------------------------------------------------- */

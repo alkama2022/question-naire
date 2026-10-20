@@ -35,6 +35,31 @@ export interface Sql {
     text: string,
     params?: unknown[],
   ): Promise<T[]>;
+  /**
+   * Inline static SQL verbatim — a column list, a keyword, an expression.
+   *
+   * The text is part of the query, never a value: only use it for SQL you
+   * wrote yourself, never for anything that came from a request.
+   */
+  raw(text: string): RawSql;
+  /**
+   * A comma-separated parameter list for `in (${sql.join(ids)})`.
+   *
+   * The values stay parameters — they are bound, never pasted into the SQL.
+   */
+  join(values: readonly unknown[]): RawSql;
+}
+
+/**
+ * A piece of SQL that is inlined into a query instead of being bound.
+ *
+ * `values` are bound as parameters (in order) after the text is inlined.
+ */
+export class RawSql {
+  constructor(
+    readonly text: string,
+    readonly values: readonly unknown[] = [],
+  ) {}
 }
 
 /**
@@ -77,11 +102,32 @@ function toSql(run: Run): Sql {
   ): Promise<T[]> => {
     // Rebuild with $1, $2, … placeholders so values stay parameterized.
     let text = strings[0];
-    for (let i = 0; i < values.length; i += 1) text += `$${i + 1}${strings[i + 1]}`;
-    return run<T>(text, values);
+    const params: unknown[] = [];
+    for (let i = 0; i < values.length; i += 1) {
+      const value = values[i];
+      if (value instanceof RawSql) {
+        // Static SQL: inlined verbatim. Any values it carries are bound after
+        // the text, so the placeholder numbering stays in step. The "?"
+        // markers are replaced inside the fragment only, so a value that
+        // itself contains "?" cannot shift the numbering.
+        let fragment = value.text;
+        for (const bound of value.values) {
+          params.push(bound);
+          fragment = fragment.replace("?", `$${params.length}`);
+        }
+        text += fragment + strings[i + 1];
+        continue;
+      }
+      params.push(value);
+      text += `$${params.length}` + strings[i + 1];
+    }
+    return run<T>(text, params);
   }) as unknown as Sql;
   sql.query = <T = Record<string, unknown>>(text: string, params: unknown[] = []) =>
     run<T>(text, params);
+  sql.raw = (text: string) => new RawSql(text);
+  sql.join = (values: readonly unknown[]) =>
+    new RawSql(values.map(() => "?").join(", "), values);
   return sql;
 }
 
