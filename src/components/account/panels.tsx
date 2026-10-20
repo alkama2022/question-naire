@@ -311,8 +311,13 @@ export function RegisterForm({ initialRole }: { initialRole?: "researcher" | "pa
           return;
         }
         await researchService.refresh();
-        const roleResult = await researchService.setOwnRole(parsed.data.role);
-        if (!roleResult.ok) toast.error(roleResult.error);
+        // Only a researcher needs their role raised; "participant" is what a
+        // new account already has, and an administrator's role is the
+        // operator's to decide.
+        if (parsed.data.role === "researcher") {
+          const roleResult = await researchService.setOwnRole(parsed.data.role);
+          if (!roleResult.ok) toast.error(roleResult.error);
+        }
         await researchService.updateProfile("", {
           name: parsed.data.name,
           institution: parsed.data.institution,

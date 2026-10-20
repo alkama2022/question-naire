@@ -255,11 +255,16 @@ export async function updatePreferences(
  *
  * `researcher` and `participant` are self-service. `admin` is not — it comes
  * from `ADMIN_EMAILS` only, so nobody can promote themselves from the browser.
+ * An administrator's role is left alone: registration must not demote an
+ * account that the operator provisioned.
  */
 export async function setOwnRole(
   actor: Actor,
   role: "researcher" | "participant",
 ): Promise<MutationResult<Actor>> {
+  if (actor.role === "admin") {
+    return { ok: false, error: "An administrator's role is set by the operator." };
+  }
   const sql = await getSql();
   const rows = await sql<ProfileRow>`
     update rc_profiles
