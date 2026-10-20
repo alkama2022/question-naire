@@ -1,10 +1,9 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { TooltipProvider } from "@/components/ui/overlay";
-import { useDemoStore } from "@/lib/research/store";
+import { WorkspaceSync } from "@/components/workspace/sync";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -40,7 +39,7 @@ function RootComponent() {
         <PreviewHostBridge />
         <AuthProvider>
           <TooltipProvider>
-            <DemoHydrate />
+            <WorkspaceSync />
             <Outlet />
             <Toaster position="top-center" />
           </TooltipProvider>
@@ -49,11 +48,4 @@ function RootComponent() {
       </body>
     </html>
   );
-}
-
-function DemoHydrate() {
-  useEffect(() => {
-    void useDemoStore.persist.rehydrate();
-  }, []);
-  return null;
 }

@@ -13,7 +13,14 @@ export type QualityLabel = "pending" | "accepted" | "excluded" | "needs_review";
 
 export type ApplicationStatus = "consented" | "declined" | "withdrawn";
 
-export type Origin = "sample" | "browser";
+/**
+ * Where a record came from.
+ *
+ * `sample` — seeded example record. `browser` — created in this browser and
+ * never sent to a server (the demo path). `server` — created through the app
+ * and stored in the database, shared between devices.
+ */
+export type Origin = "sample" | "browser" | "server";
 
 export type IssueStatus = "open" | "reviewing" | "closed";
 
@@ -153,6 +160,42 @@ export interface Result<T = undefined> {
   error?: string;
   message?: string;
   data?: T;
+}
+
+/**
+ * The signed-in person's own record, as the server holds it.
+ *
+ * `userId` is the verified session user id — the browser never sends one.
+ */
+export interface SnapshotProfile {
+  userId: string;
+  email: string;
+  name: string;
+  role: Role;
+  institution: string;
+  programme: string;
+  emailVerified: boolean;
+  notifyEmail: boolean;
+  notifyInApp: boolean;
+  suspended: boolean;
+}
+
+/**
+ * Everything the browser is allowed to see, as the server hands it over.
+ *
+ * The shape matches the demo store's slices, so the screens that read from
+ * the store keep working whether the records live in this browser or in the
+ * database.
+ */
+export interface SnapshotState {
+  profile: SnapshotProfile | null;
+  studies: Study[];
+  applications: Application[];
+  responses: ResponseRecord[];
+  notices: Notice[];
+  audits: AuditEvent[];
+  issues: Issue[];
+  users: DemoAccount[];
 }
 
 export const CATEGORIES = [

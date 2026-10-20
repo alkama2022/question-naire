@@ -27,45 +27,23 @@ import type {
   Issue,
   Notice,
   ResponseRecord,
+  Result,
   Role,
+  SnapshotProfile,
+  SnapshotState,
   Study,
   StudyFormValues,
   StudyStatus,
 } from "./types";
 
 /** The acting user, resolved server-side from the session. */
-export interface Actor {
-  userId: string;
-  email: string;
-  name: string;
-  role: Role;
-  institution: string;
-  programme: string;
-  emailVerified: boolean;
-  notifyEmail: boolean;
-  notifyInApp: boolean;
-  suspended: boolean;
-}
+export type Actor = SnapshotProfile;
 
 /** The snapshot the browser hydrates from. Mirrors the demo store's shape. */
-export interface ServerState {
-  profile: Actor | null;
-  studies: Study[];
-  applications: Application[];
-  responses: ResponseRecord[];
-  notices: Notice[];
-  audits: AuditEvent[];
-  issues: Issue[];
-  users: DemoAccount[];
-}
+export type ServerState = SnapshotState;
 
 /** Outcome of a server mutation. Mirrors the client `Result<T>` shape. */
-export interface MutationResult<T = undefined> {
-  ok: boolean;
-  error?: string;
-  message?: string;
-  data?: T;
-}
+export type MutationResult<T = undefined> = Result<T>;
 
 /* -------------------------------------------------------------------------- */
 /* Column helpers                                                             */

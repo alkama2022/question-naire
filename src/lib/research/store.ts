@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
+import { isServerMode } from "./mode.ts";
 import { cloneSeed } from "./sample-data";
 import type {
   Application,
@@ -137,6 +138,41 @@ const initialData: DataSlice = {
   wizard: null,
   editingStudyId: null,
 };
+
+/**
+ * Where the demo records live.
+ *
+ * In demo mode this is the browser's `localStorage`, so a reload keeps the
+ * records. In server mode the database holds them — and nothing is written
+ * here, so a shared record (another person's name, a consent record) is never
+ * cached in this browser's storage.
+ */
+const demoStorage = createJSONStorage<DemoStore>(() => ({
+  getItem: (name) => {
+    if (isServerMode()) return null;
+    try {
+      return window.localStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name, value) => {
+    if (isServerMode()) return;
+    try {
+      window.localStorage.setItem(name, value);
+    } catch {
+      /* storage unavailable — the demo simply does not persist */
+    }
+  },
+  removeItem: (name) => {
+    if (isServerMode()) return;
+    try {
+      window.localStorage.removeItem(name);
+    } catch {
+      /* storage unavailable — ignore */
+    }
+  },
+}));
 
 export const useDemoStore = create<DemoStore>()(
   persist(
@@ -735,6 +771,7 @@ export const useDemoStore = create<DemoStore>()(
     {
       name: "researchconnect-demo-v1",
       skipHydration: true,
+      storage: demoStorage,
       partialize: (state) => ({
         users: state.users,
         studies: state.studies,
