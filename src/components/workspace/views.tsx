@@ -549,7 +549,11 @@ export function ReviewDetail({ studyId }: { studyId: string }) {
           if (!open) setAction(null);
         }}
         title={action === "reject" ? "Reject this request" : "Request changes"}
-        description="Write a reason the researcher can act on. This is stored only in this browser."
+        description={
+          server
+            ? "Write a reason the researcher can act on. It is stored on the server."
+            : "Write a reason the researcher can act on. This is stored only in this browser."
+        }
       >
         <Field label="Reason" htmlFor="review-note">
           <Textarea id="review-note" value={note} onChange={(event) => setNote(event.target.value)} />
@@ -661,7 +665,11 @@ export function UserAdmin() {
           if (!open) setTarget(null);
         }}
         title={target?.suspend ? "Suspend this demo account?" : "Restore this demo account?"}
-        body="This only affects the copy stored in this browser. It does not change a server."
+        body={
+          server
+            ? "The account is suspended on the server and cannot sign in until it is restored."
+            : "This only affects the copy stored in this browser. It does not change a server."
+        }
         confirmLabel={target?.suspend ? "Suspend" : "Restore"}
         destructive={target?.suspend}
         onConfirm={async () => {
@@ -755,7 +763,7 @@ export function IssuesPanel() {
           if (!open) setPending(null);
         }}
         title="Update this report?"
-        body="The new status is stored in this browser only."
+        body={server ? "The new status is saved on the server." : "The new status is stored in this browser only."}
         confirmLabel="Update"
         onConfirm={async () => {
           if (!actor || !pending) return;

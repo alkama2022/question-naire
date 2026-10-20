@@ -14,6 +14,7 @@ import { useDemoStore, useSessionUser } from "@/lib/research/store";
 import { contactSchema } from "@/lib/research/validators";
 
 export function StudyDetail({ studyId }: { studyId: string }) {
+  const server = useDataMode() === "server";
   const study = useDemoStore((state) => state.studies.find((item) => item.id === studyId));
   const owner = useDemoStore((state) => state.users.find((user) => user.id === study?.ownerId));
   const user = useSessionUser();
@@ -25,8 +26,12 @@ export function StudyDetail({ studyId }: { studyId: string }) {
     if (!study) {
       return (
         <ErrorNote
-          title="Study not in this browser"
-          body="It may have been cleared when demo data was reset. Browse the studies that are still stored here."
+          title={server ? "Study not found" : "Study not in this browser"}
+          body={
+            server
+              ? "It may have been removed, or the link may be wrong. Browse the studies that are open."
+              : "It may have been cleared when demo data was reset. Browse the studies that are still stored here."
+          }
         />
       );
     }
@@ -158,8 +163,9 @@ function ParticipationCard({ studyId }: { studyId: string }) {
       <Card className="h-fit p-5">
         <h2 className="font-display text-xl font-semibold">Want to take part?</h2>
         <p className="mt-2 text-sm text-ink-soft">
-          Use a participant demo session. Researcher accounts cannot enrol themselves, and there is no
-          secure login in this demo.
+          {server
+            ? "Sign in with a participant account. Researcher accounts cannot enrol themselves."
+            : "Use a participant demo session. Researcher accounts cannot enrol themselves, and there is no secure login in this demo."}
         </p>
         <div className="mt-4 grid gap-2">
           <Button asChild>

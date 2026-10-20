@@ -7,6 +7,7 @@ import { Card, ProgressBar } from "@/components/ui/card";
 import { deadlinePhrase } from "@/lib/research/format";
 import { isPublicStudy, recruitmentSnapshot } from "@/lib/research/metrics";
 import { useDemoQuery } from "@/lib/research/store";
+import { useDataMode } from "@/lib/research/use-data-mode";
 
 export const Route = createFileRoute("/")({
   component: Home,
