@@ -1,1 +1,0 @@
-import{n as e}from"./clsx-BbohabLV.js";import{i as t}from"./shells-IB5-QuUW.js";import{l as n}from"./index-OzcbfwP1.js";var r=e(),i=()=>(0,r.jsx)(t,{role:`admin`,children:(0,r.jsx)(n,{})});export{i as component};

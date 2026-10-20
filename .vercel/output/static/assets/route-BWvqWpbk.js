@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{i as t}from"./shells-DBYM5vVP.js";import{f as n}from"./index-Xhyh02Es.js";var r=e(),i=()=>(0,r.jsx)(t,{role:`researcher`,children:(0,r.jsx)(n,{})});export{i as component};

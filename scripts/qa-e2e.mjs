@@ -45,6 +45,7 @@ const ADMIN = {
   password: "qa-admin-pass-2026",
 };
 
+const STUDY_TITLE = `Sleep and screen time among QA students ${stamp}`;
 const steps = [];
 let failed = false;
 
@@ -196,7 +197,7 @@ async function main() {
     await page.waitForURL(/\/(researcher|verify-email)/, { timeout: 60000 });
     await gotoHydrated(page, `${BASE}/researcher/create`);
     await page.waitForSelector("#title", { timeout: 60000 });
-    await page.fill("#title", "Sleep and screen time among QA students");
+    await page.fill("#title", STUDY_TITLE);
     await page.fill(
       "#purpose",
       "We want to know whether screen time before bed changes sleep quality for students on campus.",
@@ -249,32 +250,46 @@ async function main() {
     adminPage.on("response", async (response) => {
       if (response.status() < 400) return;
       const body = await response.text().catch(() => "");
+      // The administrator account is created once and reused afterwards.
+      if (body.includes("USER_ALREADY_EXISTS")) return;
       errors.push(`[admin http ${response.status()}] ${response.url().slice(0, 90)} ${body.slice(0, 300)}`);
     });
-    // Create the administrator account (its address is in ADMIN_EMAILS, so the
-    // server gives it the administrator role). An account that already exists
-    // is fine — the sign-in below is what matters.
-    await gotoHydrated(adminPage, `${BASE}/register`);
-    await adminPage.waitForSelector("#reg-name", { timeout: 60000 });
-    await adminPage.fill("#reg-name", ADMIN.name);
-    await adminPage.fill("#reg-email", ADMIN.email);
-    await adminPage.fill("#reg-password", ADMIN.password);
-    await adminPage.fill("#reg-confirm", ADMIN.password);
-    await adminPage.getByRole("checkbox").first().click();
-    await adminPage.getByRole("button", { name: "Create account" }).click();
-    await adminPage.waitForTimeout(2500);
+    // The administrator account is created once and reused afterwards: try to
+    // sign in first, and only create it when that fails.
+    await gotoHydrated(adminPage, `${BASE}/login`);
+    await adminPage.fill("#login-email", ADMIN.email);
+    await adminPage.fill("#login-password", ADMIN.password);
+    await adminPage.getByRole("button", { name: "Log in" }).click();
+    const adminSignedIn = await adminPage
+      .waitForURL(/\/(admin|researcher|participant)/, { timeout: 15000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!adminSignedIn) {
+      // No account yet — create it. Its address is in ADMIN_EMAILS, so the
+      // server gives it the administrator role.
+      await gotoHydrated(adminPage, `${BASE}/register`);
+      await adminPage.waitForSelector("#reg-name", { timeout: 60000 });
+      await adminPage.fill("#reg-name", ADMIN.name);
+      await adminPage.fill("#reg-email", ADMIN.email);
+      await adminPage.fill("#reg-password", ADMIN.password);
+      await adminPage.fill("#reg-confirm", ADMIN.password);
+      await adminPage.getByRole("checkbox").first().click();
+      await adminPage.getByRole("button", { name: "Create account" }).click();
+      await adminPage.waitForURL(/\/verify-email/, { timeout: 60000 });
+      record("the administrator account is created with the operator-set role", true);
+    }
     await gotoHydrated(adminPage, `${BASE}/login`);
     await adminPage.fill("#login-email", ADMIN.email);
     await adminPage.fill("#login-password", ADMIN.password);
     await adminPage.getByRole("button", { name: "Log in" }).click();
     await adminPage.waitForURL(/\/(admin|researcher|participant)/, { timeout: 60000 });
     await gotoHydrated(adminPage, `${BASE}/admin/reviews`);
-    const pending = adminPage.getByText("Sleep and screen time among QA students").first();
+    const pending = adminPage.getByText(STUDY_TITLE).first();
     await pending.waitFor({ timeout: 60000 });
     record("the request reaches the administrator queue", true);
     // The queue links to the review screen with a "Review" button.
     await adminPage
-      .locator("h2", { hasText: "Sleep and screen time among QA students" })
+      .locator("h2", { hasText: STUDY_TITLE }).first()
       .locator("xpath=../..")
       .getByRole("link", { name: "Review" })
       .click();

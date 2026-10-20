@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-DBYM5vVP.js";import{i as n}from"./views-BmM8IDRN.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Reported issues`,description:`Contact messages and study reports saved in this browser.`}),(0,r.jsx)(n,{})]});export{i as component};

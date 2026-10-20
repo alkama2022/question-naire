@@ -1,4 +1,5 @@
-import { A as createInlineCssPlaceholderAsset, B as createSieveCache, C as createPlugin, D as isStream, I as waitForReason, K as rootRouteId, L as _getRenderedMatches, N as getStylesheetHref, T as crossSerializeStream, V as decodePath, W as dehydrateSsrMatchId, j as createInlineCssStyleAsset, l as createHydrationScripts, u as GLOBAL_TSR, w as createStream, z as invariant } from "./react-router+[...].mjs";
+import { A as isStream, B as _getRenderedMatches, D as createStream, E as createPlugin, H as invariant, I as getStylesheetHref, N as createInlineCssPlaceholderAsset, O as crossSerializeStream, P as createInlineCssStyleAsset, U as createSieveCache, W as decodePath, X as rootRouteId, a as bindSsrResponseToRequest, c as isSsrResponse, f as createHydrationScripts, p as GLOBAL_TSR, q as dehydrateSsrMatchId, s as disposeSsrResponse, z as waitForReason } from "./react-router+[...].mjs";
+import { n as createServerHistory } from "../tanstack__history.mjs";
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/serializer/transformer.js
 /**
 * Create a strongly-typed serialization adapter for SSR hydration.
@@ -796,6 +797,26 @@ function attachRouterServerSsrUtils({ router, manifest, getRequestAssets }) {
 		console.error("SSR attach listener error:", err);
 	}
 }
+/**
+* Get the origin for the request.
+*
+* SECURITY: We intentionally do NOT trust the Origin header for determining
+* the router's origin. The Origin header can be spoofed by attackers, which
+* could lead to SSRF-like vulnerabilities where redirects are constructed
+* using a malicious origin (CVE-2024-34351).
+*
+* Instead, we derive the origin from request.url, which is typically set by
+* the server infrastructure (not client-controlled headers).
+*
+* For applications behind proxies that need to trust forwarded headers,
+* use the router's `origin` option to explicitly configure a trusted origin.
+*/
+function getOrigin(request) {
+	try {
+		return new URL(request.url).origin;
+	} catch {}
+	return "http://localhost";
+}
 function getNormalizedURL(url, base) {
 	if (typeof url === "string") url = url.replace("\\", "%5C");
 	const rawUrl = new URL(url, base);
@@ -869,4 +890,58 @@ function mergeHeaders(...headers) {
 	}, new Headers());
 }
 //#endregion
-export { defaultSerovalDeserializerPlugins as a, createRawStreamRPCPlugin as i, attachRouterServerSsrUtils as n, makeSerovalPlugin as o, getNormalizedURL as r, createSerializationAdapter as s, mergeHeaders as t };
+//#region node_modules/@tanstack/router-core/dist/esm/ssr/createRequestHandler.js
+function createLateResponseDisposer(signal) {
+	return (result) => {
+		if (result instanceof Response || isSsrResponse(result)) disposeSsrResponse(result, signal.reason);
+	};
+}
+function createRequestHandler({ createRouter, request, getRouterManifest }) {
+	return async (cb) => {
+		const signal = request.signal;
+		signal.throwIfAborted();
+		const manifest = getRouterManifest ? await waitForReason(getRouterManifest(), signal) : void 0;
+		signal.throwIfAborted();
+		const router = createRouter();
+		let responseOwnsCleanup = false;
+		try {
+			attachRouterServerSsrUtils({
+				router,
+				manifest
+			});
+			const { url } = getNormalizedURL(request.url, "http://localhost");
+			const origin = getOrigin(request);
+			const history = createServerHistory(url.href.replace(url.origin, ""));
+			router.update({
+				history,
+				origin: router.options.origin ?? origin
+			});
+			await router.load({ _signal: signal });
+			signal.throwIfAborted();
+			const result = router._serverResult;
+			if (result?.type === "redirect") return result.redirect;
+			await router.serverSsr?.dehydrate({ signal });
+			signal.throwIfAborted();
+			const responseHeaders = getRequestHeaders({ router });
+			signal.throwIfAborted();
+			const disposeLate = createLateResponseDisposer(signal);
+			const ssrResponse = bindSsrResponseToRequest(router, await waitForReason(cb({
+				request,
+				router,
+				responseHeaders
+			}), signal, disposeLate, disposeLate), signal);
+			signal.throwIfAborted();
+			responseOwnsCleanup = ssrResponse.serverSsrCleanup === "stream";
+			return ssrResponse.response;
+		} finally {
+			if (!responseOwnsCleanup) router.serverSsr?.cleanup();
+		}
+	};
+}
+function getRequestHeaders(opts) {
+	const matchHeaders = [];
+	for (const match of _getRenderedMatches(opts.router.stores.matches.get())) matchHeaders.push(match.headers);
+	return mergeHeaders({ "Content-Type": "text/html; charset=UTF-8" }, ...matchHeaders);
+}
+//#endregion
+export { createRawStreamRPCPlugin as a, createSerializationAdapter as c, getNormalizedURL as i, mergeHeaders as n, defaultSerovalDeserializerPlugins as o, attachRouterServerSsrUtils as r, makeSerovalPlugin as s, createRequestHandler as t };

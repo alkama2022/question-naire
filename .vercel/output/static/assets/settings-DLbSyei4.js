@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-DBYM5vVP.js";import{o as n}from"./panels-DdT4Xc5D.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Settings`,description:`Profile and preferences for this browser session.`}),(0,r.jsx)(n,{})]});export{i as component};

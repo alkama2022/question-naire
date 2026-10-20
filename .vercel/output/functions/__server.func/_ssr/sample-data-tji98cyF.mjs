@@ -1,0 +1,607 @@
+//#region node_modules/.nitro/vite/services/ssr/assets/sample-data-tji98cyF.js
+var CATEGORIES = [
+	"Health and behaviour",
+	"Education",
+	"Business and livelihoods",
+	"Media and communication",
+	"Agriculture",
+	"Public policy",
+	"Other"
+];
+var METHODS = [
+	"Open listing on ResearchConnect",
+	"Campus notice plus open listing",
+	"Class or department group, screened here"
+];
+var STATUS_LABEL = {
+	draft: "Draft",
+	pending_review: "Pending review",
+	approved: "Approved",
+	active: "Active",
+	paused: "Paused",
+	completed: "Completed",
+	rejected: "Rejected"
+};
+var QUALITY_LABEL = {
+	pending: "Pending",
+	accepted: "Accepted",
+	excluded: "Excluded",
+	needs_review: "Needs review"
+};
+var PREVIEW_ADMIN_ID = "usr-preview-admin";
+var DEMO_PASSWORD = "study-demo";
+var statement = (text) => text;
+function account(partial) {
+	return {
+		password: DEMO_PASSWORD,
+		emailVerified: true,
+		notifyEmail: true,
+		notifyInApp: true,
+		suspended: false,
+		origin: "sample",
+		...partial
+	};
+}
+var sampleUsers = [
+	account({
+		id: "usr-ada",
+		name: "Ada Okafor",
+		email: "ada@demo.researchconnect.ng",
+		role: "researcher",
+		institution: "University of Abuja",
+		programme: "BSc Psychology, final year",
+		createdAt: "2026-09-02T09:00:00.000Z"
+	}),
+	account({
+		id: "usr-ibrahim",
+		name: "Ibrahim Musa",
+		email: "ibrahim@demo.researchconnect.ng",
+		role: "researcher",
+		institution: "Bayero University, Kano",
+		programme: "MSc Sociology",
+		createdAt: "2026-09-04T09:00:00.000Z"
+	}),
+	account({
+		id: "usr-ngozi",
+		name: "Ngozi Eze",
+		email: "ngozi@demo.researchconnect.ng",
+		role: "researcher",
+		institution: "University of Nigeria, Nsukka",
+		programme: "BSc Nursing, final year",
+		createdAt: "2026-09-06T09:00:00.000Z"
+	}),
+	account({
+		id: "usr-chinedu",
+		name: "Chinedu Bello",
+		email: "chinedu@demo.researchconnect.ng",
+		role: "participant",
+		institution: "University of Abuja",
+		programme: "BSc Sociology",
+		createdAt: "2026-09-12T09:00:00.000Z"
+	}),
+	account({
+		id: "usr-fatima",
+		name: "Fatima Abdullahi",
+		email: "fatima@demo.researchconnect.ng",
+		role: "participant",
+		institution: "Ahmadu Bello University",
+		programme: "BSc Nursing",
+		createdAt: "2026-09-18T09:00:00.000Z"
+	})
+];
+function study(partial) {
+	return partial;
+}
+var baseAck = {
+	privacyAck: true,
+	approvalAck: true,
+	rejectionReason: "",
+	changeRequest: "",
+	pausedByAdmin: false,
+	origin: "sample"
+};
+var sampleStudies = [
+	study({
+		...baseAck,
+		id: "stu-sleep",
+		ownerId: "usr-ada",
+		title: "Social media use and sleep quality among undergraduates",
+		purpose: "Describe how often undergraduate students use social media at night, and how that lines up with self-reported sleep over the past two weeks.",
+		description: "A final-year psychology questionnaire. It asks about evening phone use, class schedules, and sleep. It does not diagnose a sleep disorder, and it is not a clinical service.",
+		category: "Health and behaviour",
+		institution: "University of Abuja, Department of Psychology (student project)",
+		targetPopulation: "Undergraduates aged 18 to 30 studying in the Federal Capital Territory",
+		ageMin: 18,
+		ageMax: 30,
+		location: "Federal Capital Territory",
+		inclusion: "Currently enrolled as an undergraduate student",
+		exclusion: "Not currently enrolled, or under 18",
+		extraQuestions: "Which institution are you enrolled in?",
+		targetCount: 80,
+		deadline: "2026-11-20",
+		method: "Open listing on ResearchConnect",
+		completionMinutes: 8,
+		questionnaireUrl: "https://example.com/questionnaires/sleep-abuja",
+		incentive: "No payment or gift. If the project is finished, the researcher hopes to share a short summary of group results. That summary is not guaranteed.",
+		informationStatement: statement("You are invited to a student questionnaire about night-time social media use and sleep. It takes about 8 minutes. You can stop at any time. Your name and email are not shown to the researcher on this platform. The questionnaire itself is hosted outside ResearchConnect. Participation is voluntary and is not a course requirement."),
+		status: "active",
+		createdAt: "2026-09-14T10:00:00.000Z",
+		updatedAt: "2026-09-18T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-library",
+		ownerId: "usr-ada",
+		title: "Library confidence among first-year students",
+		purpose: "Learn whether first-year students feel able to find a book or journal for a coursework assignment.",
+		description: "Draft only. The questionnaire link and consent wording are not finished.",
+		category: "Education",
+		institution: "University of Abuja (student project)",
+		targetPopulation: "First-year undergraduates",
+		ageMin: null,
+		ageMax: null,
+		location: "Abuja",
+		inclusion: "",
+		exclusion: "",
+		extraQuestions: "",
+		targetCount: 60,
+		deadline: "",
+		method: "",
+		completionMinutes: 10,
+		questionnaireUrl: "",
+		incentive: "",
+		informationStatement: "",
+		privacyAck: false,
+		approvalAck: false,
+		status: "draft",
+		createdAt: "2026-10-10T10:00:00.000Z",
+		updatedAt: "2026-10-12T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-attendance",
+		ownerId: "usr-ada",
+		title: "Lecture attendance and continuous assessment scores",
+		purpose: "Look at how students describe their lecture attendance and whether they see a link with continuous assessment scores.",
+		description: "A completed education questionnaire from the previous session. It is closed to new participants and kept here so the recruitment record can still be reviewed.",
+		category: "Education",
+		institution: "University of Abuja (student project)",
+		targetPopulation: "200-level undergraduates in the Faculty of Social Science",
+		ageMin: 18,
+		ageMax: 40,
+		location: "Abuja",
+		inclusion: "Registered for at least two faculty courses this session",
+		exclusion: "Visiting students who are not registered for the session",
+		extraQuestions: "",
+		targetCount: 40,
+		deadline: "2026-08-30",
+		method: "Class or department group, screened here",
+		completionMinutes: 12,
+		questionnaireUrl: "https://example.com/questionnaires/attendance-abuja",
+		incentive: "No payment or gift was offered.",
+		informationStatement: statement("This questionnaire asks about your lecture attendance and continuous assessment. It is voluntary. Course marks are not changed because you take part or decline. The researcher sees counts on this platform, not your email address."),
+		status: "completed",
+		createdAt: "2026-07-02T10:00:00.000Z",
+		updatedAt: "2026-08-31T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-politics",
+		ownerId: "usr-ada",
+		title: "Income and political preference on campus",
+		purpose: "Explore whether students connect family income with political preference.",
+		description: "A draft that was sent for review. The reviewer sent it back because the consent wording and questionnaire link were not in place.",
+		category: "Public policy",
+		institution: "University of Abuja (student project)",
+		targetPopulation: "Undergraduates on the main campus",
+		ageMin: 18,
+		ageMax: 35,
+		location: "Abuja",
+		inclusion: "Currently enrolled undergraduate",
+		exclusion: "Staff and postgraduate students",
+		extraQuestions: "",
+		targetCount: 150,
+		deadline: "2026-12-01",
+		method: "Open listing on ResearchConnect",
+		completionMinutes: 6,
+		questionnaireUrl: "",
+		incentive: "No incentive has been confirmed.",
+		informationStatement: "Students would answer questions about income and voting.",
+		privacyAck: false,
+		approvalAck: false,
+		status: "rejected",
+		rejectionReason: "The request does not explain that participation is voluntary, and the questionnaire link is missing. Add both, then resubmit. This is not a judgment of the research topic.",
+		createdAt: "2026-10-01T10:00:00.000Z",
+		updatedAt: "2026-10-08T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-careers",
+		ownerId: "usr-ada",
+		title: "Career intentions of final-year education students",
+		purpose: "Describe whether final-year education students plan to teach, study further, or look for work outside schools.",
+		description: "Approved and ready to open. Recruitment has not started, so participants cannot join yet.",
+		category: "Education",
+		institution: "University of Abuja, Faculty of Education (student project)",
+		targetPopulation: "Final-year education undergraduates in Abuja",
+		ageMin: 20,
+		ageMax: 40,
+		location: "Abuja",
+		inclusion: "Final-year student in an education programme",
+		exclusion: "Students who are not in their final year",
+		extraQuestions: "Which education programme are you in?",
+		targetCount: 70,
+		deadline: "2026-12-15",
+		method: "Campus notice plus open listing",
+		completionMinutes: 9,
+		questionnaireUrl: "https://example.com/questionnaires/education-careers",
+		incentive: "No payment or gift has been confirmed.",
+		informationStatement: statement("This questionnaire asks about your plans after the final year. It takes about 9 minutes. You do not have to take part, and declining has no effect on your degree. Results, if shared, will be grouped."),
+		status: "approved",
+		createdAt: "2026-10-05T10:00:00.000Z",
+		updatedAt: "2026-10-14T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-traders",
+		ownerId: "usr-ibrahim",
+		title: "Record-keeping by undergraduate student traders in Kano",
+		purpose: "Find out how student traders keep sales records, and which tools they actually use during a week of trading.",
+		description: "A sociology questionnaire for undergraduates who sell goods or services while studying in Kano. It does not ask for account passwords or business bank details.",
+		category: "Business and livelihoods",
+		institution: "Bayero University, Kano (postgraduate project)",
+		targetPopulation: "Undergraduates in Kano who traded at least once in the past month",
+		ageMin: 18,
+		ageMax: 35,
+		location: "Kano",
+		inclusion: "You sold a product or service at least once in the past 30 days",
+		exclusion: "People who have not traded in the past 30 days",
+		extraQuestions: "Was your last sale on campus or off campus?",
+		targetCount: 60,
+		deadline: "2026-11-30",
+		method: "Open listing on ResearchConnect",
+		completionMinutes: 11,
+		questionnaireUrl: "https://example.com/questionnaires/kano-traders",
+		incentive: "No payment has been confirmed. A group summary may be shared later, but it is not promised.",
+		informationStatement: statement("You are invited to a questionnaire about how student traders keep records. It takes about 11 minutes. Do not include customer names or bank details. You can decline or withdraw. The researcher does not see your email on this platform."),
+		status: "active",
+		createdAt: "2026-09-20T10:00:00.000Z",
+		updatedAt: "2026-09-28T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-oer",
+		ownerId: "usr-ibrahim",
+		title: "Use of free online course materials",
+		purpose: "Describe when students use free online notes and videos alongside assigned readings.",
+		description: "Recruitment is paused. The public page stays visible so people can see why new participants are not being accepted.",
+		category: "Education",
+		institution: "Bayero University, Kano (postgraduate project)",
+		targetPopulation: "Undergraduates using online course materials",
+		ageMin: 18,
+		ageMax: 40,
+		location: "Kano",
+		inclusion: "Currently enrolled undergraduate",
+		exclusion: "Students who have not used online course materials this semester",
+		extraQuestions: "",
+		targetCount: 40,
+		deadline: "2026-11-10",
+		method: "Campus notice plus open listing",
+		completionMinutes: 7,
+		questionnaireUrl: "https://example.com/questionnaires/open-materials",
+		incentive: "No incentive has been confirmed.",
+		informationStatement: statement("This short questionnaire asks about free online notes and videos. Participation is voluntary. Recruitment is currently paused, so new consent cannot be recorded until it reopens."),
+		status: "paused",
+		createdAt: "2026-09-22T10:00:00.000Z",
+		updatedAt: "2026-10-09T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-market",
+		ownerId: "usr-ibrahim",
+		title: "Mobile-money fees and student market sellers in Kano",
+		purpose: "Describe how student sellers think about mobile-money transfer fees when they are paid by customers.",
+		description: "Submitted for review. It is not public. Reviewers can read the full request before it is approved.",
+		category: "Business and livelihoods",
+		institution: "Bayero University, Kano (postgraduate project)",
+		targetPopulation: "Student sellers in Kano who received a mobile-money payment in the past month",
+		ageMin: 18,
+		ageMax: 35,
+		location: "Kano",
+		inclusion: "Received at least one mobile-money payment from a customer in the past 30 days",
+		exclusion: "Students who only use mobile money for personal transfers",
+		extraQuestions: "Which mobile-money service do you use most often?",
+		targetCount: 90,
+		deadline: "2026-12-20",
+		method: "Open listing on ResearchConnect",
+		completionMinutes: 10,
+		questionnaireUrl: "https://example.com/questionnaires/kano-mobile-money",
+		incentive: "No payment or airtime has been confirmed. Do not expect a reward.",
+		informationStatement: statement("This questionnaire asks about transfer fees on customer payments. It takes about 10 minutes. You can skip it. Do not enter wallet PINs, full account numbers, or customer phone numbers. Participation is voluntary."),
+		status: "pending_review",
+		createdAt: "2026-10-15T10:00:00.000Z",
+		updatedAt: "2026-10-15T10:00:00.000Z"
+	}),
+	study({
+		...baseAck,
+		id: "stu-nursing",
+		ownerId: "usr-ngozi",
+		title: "Stress and academic performance among nursing students",
+		purpose: "Describe self-reported stress during clinical postings and how nursing students feel it affects their reading and scores.",
+		description: "A final-year nursing questionnaire. It is not a counselling service. If the questions feel difficult, you can stop and use your campus health service.",
+		category: "Health and behaviour",
+		institution: "University of Nigeria, Nsukka (student project)",
+		targetPopulation: "Nursing students in clinical years",
+		ageMin: 18,
+		ageMax: 35,
+		location: "Enugu State",
+		inclusion: "Currently enrolled nursing student who has started clinical postings",
+		exclusion: "Students who have not started clinical postings",
+		extraQuestions: "Which clinical year are you in?",
+		targetCount: 100,
+		deadline: "2026-12-05",
+		method: "Class or department group, screened here",
+		completionMinutes: 12,
+		questionnaireUrl: "https://example.com/questionnaires/nursing-stress",
+		incentive: "No payment or gift has been confirmed.",
+		informationStatement: statement("You are invited to a questionnaire about stress during clinical postings and academic work. It takes about 12 minutes. You can decline or stop. This is not counselling, and your answers are not sent to your department as an individual report. The researcher does not see your email here."),
+		status: "active",
+		createdAt: "2026-09-25T10:00:00.000Z",
+		updatedAt: "2026-10-01T10:00:00.000Z"
+	})
+];
+function expand(studyId, startCode, rows) {
+	return rows.map(([day, kind], index) => ({
+		id: `rsp-${studyId}-${index + 1}`,
+		studyId,
+		code: `RC-${startCode + index}`,
+		createdAt: `${day}T08:30:00.000Z`,
+		completedAt: kind === "incomplete" ? void 0 : `${day}T10:15:00.000Z`,
+		quality: kind === "incomplete" ? "pending" : kind,
+		withdrawn: false,
+		note: "",
+		origin: "sample"
+	}));
+}
+var sampleResponses = [
+	...expand("stu-sleep", 2401, [
+		["2026-09-16", "accepted"],
+		["2026-09-16", "accepted"],
+		["2026-09-18", "accepted"],
+		["2026-09-19", "excluded"],
+		["2026-09-22", "accepted"],
+		["2026-09-23", "accepted"],
+		["2026-09-24", "needs_review"],
+		["2026-09-25", "accepted"],
+		["2026-09-29", "accepted"],
+		["2026-09-30", "incomplete"],
+		["2026-10-01", "accepted"],
+		["2026-10-02", "pending"],
+		["2026-10-03", "accepted"],
+		["2026-10-06", "accepted"],
+		["2026-10-07", "excluded"],
+		["2026-10-08", "accepted"],
+		["2026-10-09", "incomplete"],
+		["2026-10-13", "accepted"],
+		["2026-10-14", "accepted"],
+		["2026-10-15", "needs_review"],
+		["2026-10-16", "pending"],
+		["2026-10-16", "incomplete"]
+	]),
+	{
+		id: "rsp-chinedu-sleep",
+		studyId: "stu-sleep",
+		code: "RC-3188",
+		participantId: "usr-chinedu",
+		applicationId: "app-chinedu-sleep",
+		createdAt: "2026-10-02T12:00:00.000Z",
+		completedAt: "2026-10-02T12:20:00.000Z",
+		quality: "accepted",
+		withdrawn: false,
+		note: "",
+		origin: "sample"
+	},
+	{
+		id: "rsp-fatima-sleep",
+		studyId: "stu-sleep",
+		code: "RC-3189",
+		participantId: "usr-fatima",
+		applicationId: "app-fatima-sleep",
+		createdAt: "2026-10-12T15:00:00.000Z",
+		quality: "pending",
+		withdrawn: false,
+		note: "",
+		origin: "sample"
+	},
+	...expand("stu-traders", 4101, [
+		["2026-09-29", "accepted"],
+		["2026-09-30", "accepted"],
+		["2026-10-02", "accepted"],
+		["2026-10-06", "needs_review"],
+		["2026-10-08", "accepted"],
+		["2026-10-10", "incomplete"],
+		["2026-10-14", "pending"],
+		["2026-10-15", "excluded"]
+	]),
+	{
+		id: "rsp-chinedu-traders",
+		studyId: "stu-traders",
+		code: "RC-4199",
+		participantId: "usr-chinedu",
+		applicationId: "app-chinedu-traders",
+		createdAt: "2026-10-04T09:00:00.000Z",
+		quality: "pending",
+		withdrawn: true,
+		note: "Participant withdrew before completing the questionnaire.",
+		origin: "sample"
+	},
+	...expand("stu-nursing", 5101, [
+		["2026-10-01", "accepted"],
+		["2026-10-03", "accepted"],
+		["2026-10-06", "accepted"],
+		["2026-10-08", "pending"],
+		["2026-10-10", "needs_review"],
+		["2026-10-13", "incomplete"],
+		["2026-10-15", "accepted"]
+	]),
+	...expand("stu-oer", 6101, [
+		["2026-09-24", "accepted"],
+		["2026-09-28", "accepted"],
+		["2026-10-02", "excluded"],
+		["2026-10-07", "pending"]
+	]),
+	...expand("stu-attendance", 1101, Array.from({ length: 12 }, (_, index) => [index < 6 ? "2026-08-12" : "2026-08-20", "accepted"]))
+];
+var sampleApplications = [
+	{
+		id: "app-chinedu-sleep",
+		studyId: "stu-sleep",
+		participantId: "usr-chinedu",
+		status: "consented",
+		createdAt: "2026-10-02T12:00:00.000Z",
+		updatedAt: "2026-10-02T12:05:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "app-fatima-sleep",
+		studyId: "stu-sleep",
+		participantId: "usr-fatima",
+		status: "consented",
+		createdAt: "2026-10-12T15:00:00.000Z",
+		updatedAt: "2026-10-12T15:04:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "app-chinedu-traders",
+		studyId: "stu-traders",
+		participantId: "usr-chinedu",
+		status: "withdrawn",
+		createdAt: "2026-10-04T09:00:00.000Z",
+		updatedAt: "2026-10-05T09:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "app-fatima-nursing",
+		studyId: "stu-nursing",
+		participantId: "usr-fatima",
+		status: "declined",
+		createdAt: "2026-10-09T11:00:00.000Z",
+		updatedAt: "2026-10-09T11:02:00.000Z",
+		origin: "sample"
+	}
+];
+var sampleNotices = [
+	{
+		id: "nt-ada-1",
+		userId: "usr-ada",
+		title: "Sleep study responses need a label",
+		body: "Some completed questionnaires are still marked Pending or Needs review. Labels are a researcher decision, not proof that an answer is genuine.",
+		href: "/researcher/recruitment/stu-sleep",
+		read: false,
+		createdAt: "2026-10-16T08:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "nt-ada-2",
+		userId: "usr-ada",
+		title: "Career intentions study was approved",
+		body: "You can open recruitment when you are ready. It is not public until you do.",
+		href: "/researcher/studies",
+		read: false,
+		createdAt: "2026-10-14T16:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "nt-ibrahim-1",
+		userId: "usr-ibrahim",
+		title: "Mobile-money study is pending review",
+		body: "It stays off the public list until a reviewer approves it. No email was sent.",
+		href: "/researcher/studies",
+		read: false,
+		createdAt: "2026-10-15T11:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "nt-chinedu-1",
+		userId: "usr-chinedu",
+		title: "Questionnaire link for the sleep study",
+		body: "You consented on 2 Oct. Open the study page for the external questionnaire link. ResearchConnect does not host the form.",
+		href: "/studies/stu-sleep",
+		read: false,
+		createdAt: "2026-10-02T12:06:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "nt-admin-1",
+		userId: "role:admin",
+		title: "A study is waiting for review",
+		body: "Mobile-money fees and student market sellers in Kano is pending. This notice is sample data.",
+		href: "/admin/reviews/stu-market",
+		read: false,
+		createdAt: "2026-10-15T11:05:00.000Z",
+		origin: "sample"
+	}
+];
+var sampleAudits = [
+	{
+		id: "aud-1",
+		actorId: "usr-preview-admin",
+		actorName: "Sample reviewer",
+		action: "Approved study",
+		detail: "Social media use and sleep quality among undergraduates",
+		createdAt: "2026-09-16T09:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "aud-2",
+		actorId: "usr-ada",
+		actorName: "Ada Okafor",
+		action: "Opened recruitment",
+		detail: "Social media use and sleep quality among undergraduates",
+		createdAt: "2026-09-18T10:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "aud-3",
+		actorId: "usr-preview-admin",
+		actorName: "Sample reviewer",
+		action: "Rejected study",
+		detail: "Income and political preference on campus",
+		createdAt: "2026-10-08T15:00:00.000Z",
+		origin: "sample"
+	},
+	{
+		id: "aud-4",
+		actorId: "usr-ibrahim",
+		actorName: "Ibrahim Musa",
+		action: "Paused study",
+		detail: "Use of free online course materials",
+		createdAt: "2026-10-09T12:00:00.000Z",
+		origin: "sample"
+	}
+];
+var sampleIssues = [{
+	id: "iss-1",
+	source: "report",
+	name: "Chinedu Bello",
+	email: "chinedu@demo.researchconnect.ng",
+	subject: "Questionnaire link shows a placeholder",
+	body: "The link on the free online course materials study opens an example page, not a real form. I am reporting it so the researcher can replace the link.",
+	status: "open",
+	createdAt: "2026-10-11T14:00:00.000Z",
+	origin: "sample",
+	studyId: "stu-oer"
+}];
+function cloneSeed() {
+	return {
+		users: structuredClone(sampleUsers),
+		studies: structuredClone(sampleStudies),
+		applications: structuredClone(sampleApplications),
+		responses: structuredClone(sampleResponses),
+		notices: structuredClone(sampleNotices),
+		audits: structuredClone(sampleAudits),
+		issues: structuredClone(sampleIssues)
+	};
+}
+//#endregion
+export { QUALITY_LABEL as a, PREVIEW_ADMIN_ID as i, DEMO_PASSWORD as n, STATUS_LABEL as o, METHODS as r, cloneSeed as s, CATEGORIES as t };

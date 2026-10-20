@@ -1,4 +1,4 @@
-import { i as __toESM, r as __require, t as __commonJSMin } from "../../_runtime.mjs";
+import { i as __require, o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { l as require_react_dom, u as require_react } from "../@floating-ui/react-dom+[...].mjs";
 import { i as parseHref, r as normalizeProtocolRelative } from "../tanstack__history.mjs";
 import { y as require_jsx_runtime } from "../@radix-ui/react-accordion+[...].mjs";
@@ -46,6 +46,10 @@ function redirect(opts) {
 /** Check whether a value is a TanStack Router redirect Response. */
 function isRedirect(obj) {
 	return obj instanceof Response && !!obj.options;
+}
+/** Parse a serialized redirect object back into a redirect Response. */
+function parseRedirect(obj) {
+	if (obj !== null && typeof obj === "object" && obj.isSerializedRedirect) return redirect(obj);
 }
 //#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/ssr-match-id.js
@@ -8370,6 +8374,45 @@ function defineHandlerCallback(handler) {
 }
 //#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/transformStreamWithRouter.js
+function transformPipeableStreamWithRouter(router, routerStream, opts) {
+	return Readable.fromWeb(transformReadableStreamWithRouter(router, Readable.toWeb(routerStream), opts));
+}
+async function transformHtmlStringWithRouter(router, html, opts) {
+	const serverSsr = router.serverSsr;
+	if (!serverSsr) throw new Error("Invariant failed: router.serverSsr is required");
+	if (serverSsr.hydrationScripts.reserveFastPath()) try {
+		opts?.signal?.throwIfAborted();
+		serverSsr.setRenderFinished();
+		return "<!DOCTYPE html>" + html;
+	} catch (error) {
+		try {
+			opts?.onAbort?.(error);
+		} catch {}
+		throw error;
+	} finally {
+		serverSsr.cleanup();
+	}
+	return readUtf8Stream(transformReadableStreamWithRouter(router, new ReadableStream({ start(controller) {
+		controller.enqueue("<!DOCTYPE html>");
+		controller.enqueue(html);
+		controller.close();
+	} }), opts));
+}
+async function readUtf8Stream(stream) {
+	const reader = stream.getReader();
+	const decoder = new TextDecoder();
+	let text = "";
+	try {
+		for (;;) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			text += decoder.decode(value, { stream: true });
+		}
+		return text + decoder.decode();
+	} finally {
+		reader.releaseLock();
+	}
+}
 var DEFAULT_SERIALIZATION_TIMEOUT_MS = 6e4;
 var MIN_APPLICATION_STRING_CHUNK_BYTES = 256;
 var MAX_APPLICATION_STRING_CHUNK_BYTES = 65536;
@@ -8859,6 +8902,25 @@ function makeMergeStream(serverSsr, reader, hydrationOutput, opts) {
 	});
 	disarmLifecycle = armStreamLifecycle(serverSsr, opts, () => terminal, terminate);
 	return stream;
+}
+//#endregion
+//#region node_modules/@tanstack/router-core/dist/esm/ssr/renderSsrHtmlResponse.js
+async function renderSsrHtmlResponse({ router, responseHeaders, render }) {
+	try {
+		const html = await transformHtmlStringWithRouter(router, await render());
+		return new Response(html, {
+			status: getSsrStatus(router),
+			headers: responseHeaders
+		});
+	} catch (error) {
+		console.error("Render to string error:", error);
+		return new Response("Internal Server Error", {
+			status: 500,
+			headers: responseHeaders
+		});
+	} finally {
+		router.serverSsr?.cleanup();
+	}
 }
 //#endregion
 //#region node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js
@@ -17551,7 +17613,7 @@ var require_react_dom_server_node_production = /* @__PURE__ */ __commonJSMin(((e
 	exports.version = "19.3.0";
 }));
 //#endregion
-//#region node_modules/isbot/index.mjs
+//#region node_modules/@tanstack/react-router/dist/esm/ssr/renderRouterToString.js
 var import_server_node = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports) => {
 	var l = require_react_dom_server_legacy_node_production();
 	var s = require_react_dom_server_node_production();
@@ -17563,6 +17625,15 @@ var import_server_node = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(
 	exports.resumeToPipeableStream = s.resumeToPipeableStream;
 	exports.resume = s.resume;
 })))(), 1);
+var renderRouterToString = async ({ router, responseHeaders, children }) => {
+	return renderSsrHtmlResponse({
+		router,
+		responseHeaders,
+		render: () => import_server_node.renderToString(children)
+	});
+};
+//#endregion
+//#region node_modules/isbot/index.mjs
 var fullPattern = " daum[ /]| deusu/|(?:^|[^g])news(?!sapphire)|(?<! channel/|google/)google(?!(?:wv|app|/google| pixel))|(?<! cu)bots?(?:\\b|_)|(?<!cam)scan|(?<!lib)http|24x7|;\\s\\w+;$|@[a-z][\\w-]+\\.|\\(\\)|\\.com\\b|\\b\\w+/1\\.0;|\\bbw/|\\bdlc\\b|\\bort/|\\bperl\\b|\\btime/|\\||^[<\\(;]|^[\\w \\.\\-\\(?:\\):%]+(?:/v?\\d+(?:\\.\\d+)?(?:\\.\\d{1,10})*?)?(?:,|$)|^[\\w\\-]+/[\\w]+$|^[^ ]{50,}$|^\\d+\\b|^\\w*search\\b|^\\w+/[\\w\\(\\)]*$|^\\w+/\\d\\.\\d\\s\\([\\w@]+\\)$|^active|^ad muncher|^amaya|^apache/|^avsdevicesdk/|^azure|^biglotron|^blackbox exporter|^bot|^clamav[ /]|^claude-code/|^client/|^cobweb/|^custom|^ddg[_-]android|^discourse|^dispatch/\\d|^downcast/|^duckduckgo|^email|^exodusmovement|^facebook|^getright/|^gozilla/|^hobbit|^hotzonu|^hwcdn/|^igetter/|^jeode/|^jetty/|^jigsaw|^microsoft bits|^movabletype|^mozilla/\\d\\.\\d\\s[\\w\\.-]+$|^mozilla/\\d\\.\\d\\s\\((?:compatible;)?(?:\\s?[\\w\\d-.]+\\/\\d+\\.\\d+)?\\)$|^navermailapp|^netsurf|^offline|^openai/|^owler|^php|^postman|^ps_daily/|^python|^rank|^read|^reed|^remove\\.bg/|^rest|^rss|^snapchat|^sora |^space bison|^stape/|^svn|^swcd |^taringa|^thumbor/|^track|^w3c|^webbandit/|^webcopier|^wget|^whatsapp|^wordpress|^xenu link sleuth|^yahoo|^yandex|^zdm/\\d|^zoom marketplace/|abuse|advisor|agent\\b|analyzer|archive|ask jeeves/teoma|attracta|audit|bluecoat drtr|browsex|burpcollaborator|capture|catch|check\\b|checker|chrome-lighthouse|chromeframe|classifier|cloudflare|collapsify\\b|convertify|cookiehubverify/|crawl|cursor/|cypress/|dareboost|datanyze|dejaclick|detect|discovery|dmbrowser|download|exaleadcloudview|feed|firephp|foregenix|functionize|grab|hardenize\\b|headless|hotjar|httrack|hubspot marketing grader|ibisbrowser|infrawatch|insight|inspect|iplabel|java(?!;)|library|linkcheck|linktiger|mail\\.ru/|manager|manus-user/|marketgoo/|measure|monitor\\b|neustar wpm|node\\b|nutch|offbyone|openvas|optimize|pageburst|pagespeed|parser|phantomjs|pingdom|playwright|powermarks|preview|productfinder|prospectingstudio|proxy|ptst[ /]\\d|radar|readable/|retriever|rexx;|rigor|rss\\b|scrape|securityheaders|selenium|server|silktide|sindup/|sogou|sparkler/|speedcurve|spider|splash|statuscake|supercleaner|synapse|synthetic|testlocally|tools|torrent|transcoder|url|validator|virtuoso|wappalyzer|watchtowr|webglance|webkit2png|whatcms/|xtate/";
 var naivePattern = /bot|crawl|http|lighthouse|scan|search|spider/i;
 var pattern;
@@ -17663,4 +17734,4 @@ var renderRouterToStream = async ({ request, router, responseHeaders, children }
 	}
 };
 //#endregion
-export { createInlineCssPlaceholderAsset as A, createSieveCache as B, createPlugin as C, isStream as D, fromJSON as E, resolveManifestCssLink as F, isRedirect as G, isDangerousProtocol as H, waitForReason as I, rootRouteId as K, _getRenderedMatches as L, getScriptPreloadAttrs as M, getStylesheetHref as N, toCrossJSONAsync as O, resolveManifestAssetLink as P, executeRewriteInput as R, useRouter as S, crossSerializeStream as T, isPromise as U, decodePath as V, dehydrateSsrMatchId as W, lazyRouteComponent as _, isSsrResponse as a, Link as b, stripSsrResponseBody as c, Scripts as d, HeadContent as f, Outlet as g, createRouter as h, disposeSsrResponse as i, createInlineCssStyleAsset as j, toCrossJSONStream as k, createHydrationScripts as l, RouterProvider as m, bindSsrResponseToRequest as n, normalizeSsrResponse as o, useRouterState as p, isNotFound as q, defineHandlerCallback as r, replaceSsrResponse as s, renderRouterToStream as t, GLOBAL_TSR as u, createFileRoute as v, createStream as w, useNavigate as x, createRootRoute as y, invariant as z };
+export { isStream as A, _getRenderedMatches as B, Link as C, createStream as D, createPlugin as E, getScriptPreloadAttrs as F, isDangerousProtocol as G, invariant as H, getStylesheetHref as I, isRedirect as J, isPromise as K, resolveManifestAssetLink as L, toCrossJSONStream as M, createInlineCssPlaceholderAsset as N, crossSerializeStream as O, createInlineCssStyleAsset as P, resolveManifestCssLink as R, createRootRoute as S, useRouter as T, createSieveCache as U, executeRewriteInput as V, decodePath as W, rootRouteId as X, parseRedirect as Y, isNotFound as Z, RouterProvider as _, bindSsrResponseToRequest as a, lazyRouteComponent as b, isSsrResponse as c, stripSsrResponseBody as d, createHydrationScripts as f, useRouterState as g, HeadContent as h, transformReadableStreamWithRouter as i, toCrossJSONAsync as j, fromJSON as k, normalizeSsrResponse as l, Scripts as m, renderRouterToString as n, defineHandlerCallback as o, GLOBAL_TSR as p, dehydrateSsrMatchId as q, transformPipeableStreamWithRouter as r, disposeSsrResponse as s, renderRouterToStream as t, replaceSsrResponse as u, createRouter as v, useNavigate as w, createFileRoute as x, Outlet as y, waitForReason as z };

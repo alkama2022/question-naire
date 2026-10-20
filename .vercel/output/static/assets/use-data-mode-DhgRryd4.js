@@ -1,0 +1,1 @@
+import{i as e,t}from"./react-DB-4Zxce.js";import{F as n,M as r,j as i}from"./store-wR53H23Z.js";var a=e(t(),1);function o(){return(0,a.useSyncExternalStore)(n,i,i)}function s(){return(0,a.useSyncExternalStore)(n,r,()=>!1)}export{s as n,o as t};

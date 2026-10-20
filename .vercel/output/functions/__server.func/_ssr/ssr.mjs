@@ -1,15 +1,23 @@
-import { n as __exportAll } from "../_runtime.mjs";
+import { r as __exportAll } from "../_runtime.mjs";
+import { t as __exportAll$1 } from "./rolldown-runtime-D7D4PA-g.mjs";
 import { u as require_react } from "../_libs/@floating-ui/react-dom+[...].mjs";
-import { E as fromJSON, F as resolveManifestCssLink, G as isRedirect, H as isDangerousProtocol, I as waitForReason, K as rootRouteId, L as _getRenderedMatches, M as getScriptPreloadAttrs, N as getStylesheetHref, O as toCrossJSONAsync, P as resolveManifestAssetLink, R as executeRewriteInput, U as isPromise, a as isSsrResponse, c as stripSsrResponseBody, i as disposeSsrResponse, k as toCrossJSONStream, m as RouterProvider, n as bindSsrResponseToRequest, o as normalizeSsrResponse, q as isNotFound, r as defineHandlerCallback, s as replaceSsrResponse, t as renderRouterToStream, z as invariant } from "../_libs/@tanstack/react-router+[...].mjs";
+import { B as _getRenderedMatches, F as getScriptPreloadAttrs, G as isDangerousProtocol, H as invariant, I as getStylesheetHref, J as isRedirect, K as isPromise, L as resolveManifestAssetLink, M as toCrossJSONStream, R as resolveManifestCssLink, V as executeRewriteInput, X as rootRouteId, Y as parseRedirect, Z as isNotFound, _ as RouterProvider, a as bindSsrResponseToRequest, c as isSsrResponse, d as stripSsrResponseBody, i as transformReadableStreamWithRouter, j as toCrossJSONAsync, k as fromJSON, l as normalizeSsrResponse, n as renderRouterToString, o as defineHandlerCallback, r as transformPipeableStreamWithRouter, s as disposeSsrResponse, t as renderRouterToStream, u as replaceSsrResponse, z as waitForReason } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as createServerHistory } from "../_libs/tanstack__history.mjs";
-import { a as defaultSerovalDeserializerPlugins, i as createRawStreamRPCPlugin, n as attachRouterServerSsrUtils, o as makeSerovalPlugin, r as getNormalizedURL, s as createSerializationAdapter, t as mergeHeaders } from "../_libs/@tanstack/router-core+[...].mjs";
+import { a as createRawStreamRPCPlugin, c as createSerializationAdapter, i as getNormalizedURL, n as mergeHeaders, o as defaultSerovalDeserializerPlugins, r as attachRouterServerSsrUtils, s as makeSerovalPlugin, t as createRequestHandler } from "../_libs/@tanstack/router-core+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
-import { n as toResponse, t as H3Event } from "../_libs/h3-v2+rou3.mjs";
+import { _ as updateSession, a as getRequestIP, c as getSession, d as sanitizeStatusCode, f as sanitizeStatusMessage, g as unsealSession, h as toResponse, i as getRequestHost, l as getValidatedQuery, m as setCookie, n as clearSession, o as getRequestProtocol, p as sealSession, r as deleteCookie, s as getRequestURL, t as H3Event, u as parseCookies, v as useSession } from "../_libs/h3-v2+rou3.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 //#region node_modules/.nitro/vite/services/ssr/index.js
 var ssr_exports = /* @__PURE__ */ __exportAll({
+	a: () => getServerFnById,
 	createServerEntry: () => createServerEntry,
-	default: () => server_default
+	default: () => server_default,
+	i: () => TSS_SERVER_FUNCTION,
+	n: () => createMiddleware,
+	o: () => getCookie,
+	r: () => createServerFn,
+	s: () => getRequest,
+	t: () => server_exports
 });
 require_react();
 var import_jsx_runtime = require_jsx_runtime();
@@ -18,6 +26,11 @@ function StartServer(props) {
 }
 var defaultStreamHandler = defineHandlerCallback(({ request, router, responseHeaders }) => renderRouterToStream({
 	request,
+	router,
+	responseHeaders,
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StartServer, { router })
+}));
+var defaultRenderHandler = defineHandlerCallback(({ router, responseHeaders }) => renderRouterToString({
 	router,
 	responseHeaders,
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StartServer, { router })
@@ -88,8 +101,183 @@ function getH3Event() {
 	if (!event) throw new Error(`No StartEvent found in AsyncLocalStorage. Make sure you are using the function within the server runtime.`);
 	return event.h3Event;
 }
+function getRequest() {
+	return getH3Event().req;
+}
+function getRequestHeaders() {
+	return getH3Event().req.headers;
+}
+function getRequestHeader(name) {
+	return getRequestHeaders().get(name) || void 0;
+}
+function getRequestIP$1(opts) {
+	return getRequestIP(getH3Event(), opts);
+}
+/**
+* Get the request hostname.
+*
+* If `xForwardedHost` is `true`, it will use the `x-forwarded-host` header if it exists.
+*
+* If no host header is found, it will default to "localhost".
+*/
+function getRequestHost$1(opts) {
+	return getRequestHost(getH3Event(), opts);
+}
+/**
+* Get the full incoming request URL.
+*
+* If `xForwardedHost` is `true`, it will use the `x-forwarded-host` header if it exists.
+*
+* If `xForwardedProto` is `false`, it will not use the `x-forwarded-proto` header.
+*/
+function getRequestUrl(opts) {
+	return getRequestURL(getH3Event(), opts);
+}
+/**
+* Get the request protocol.
+*
+* If `x-forwarded-proto` header is set to "https", it will return "https". You can disable this behavior by setting `xForwardedProto` to `false`.
+*
+* If protocol cannot be determined, it will default to "http".
+*/
+function getRequestProtocol$1(opts) {
+	return getRequestProtocol(getH3Event(), opts);
+}
+function setResponseHeaders(headers) {
+	const event = getH3Event();
+	if (event.res.headers === headers) return;
+	let previousName = "";
+	for (const [name, value] of headers) {
+		event.res.headers[name === previousName ? "append" : "set"](name, value);
+		previousName = name;
+	}
+}
+function getResponseHeaders() {
+	return getH3Event().res.headers;
+}
+function getResponseHeader(name) {
+	return getH3Event().res.headers.get(name) || void 0;
+}
+function setResponseHeader(name, value) {
+	const event = getH3Event();
+	if (Array.isArray(value)) {
+		event.res.headers.delete(name);
+		for (const valueItem of value) event.res.headers.append(name, valueItem);
+	} else event.res.headers.set(name, value);
+}
+function removeResponseHeader(name) {
+	getH3Event().res.headers.delete(name);
+}
+function clearResponseHeaders(headerNames) {
+	const event = getH3Event();
+	if (headerNames && headerNames.length > 0) for (const name of headerNames) event.res.headers.delete(name);
+	else for (const name of event.res.headers.keys()) event.res.headers.delete(name);
+}
+function getResponseStatus() {
+	return getH3Event().res.status || 200;
+}
+function setResponseStatus(code, text) {
+	const event = getH3Event();
+	if (code) event.res.status = sanitizeStatusCode(code, event.res.status);
+	if (text) event.res.statusText = sanitizeStatusMessage(text);
+}
+/**
+* Parse the request to get HTTP Cookie header string and return an object of all cookie name-value pairs.
+* @returns Object of cookie name-value pairs
+* ```ts
+* const cookies = getCookies()
+* ```
+*/
+function getCookies() {
+	const cookies = parseCookies(getH3Event());
+	const definedCookies = Object.create(null);
+	for (const [name, value] of Object.entries(cookies)) if (value !== void 0) definedCookies[name] = value;
+	return definedCookies;
+}
+/**
+* Get a cookie value by name.
+* @param name Name of the cookie to get
+* @returns {*} Value of the cookie (String or undefined)
+* ```ts
+* const authorization = getCookie('Authorization')
+* ```
+*/
+function getCookie(name) {
+	return getCookies()[name];
+}
+/**
+* Set a cookie value by name.
+* @param name Name of the cookie to set
+* @param value Value of the cookie to set
+* @param options {CookieSerializeOptions} Options for serializing the cookie
+* ```ts
+* setCookie('Authorization', '1234567')
+* ```
+*/
+function setCookie$1(name, value, options) {
+	setCookie(getH3Event(), name, value, options);
+}
+/**
+* Remove a cookie by name.
+* @param name Name of the cookie to delete
+* @param serializeOptions {CookieSerializeOptions} Cookie options
+* ```ts
+* deleteCookie('SessionId')
+* ```
+*/
+function deleteCookie$1(name, options) {
+	deleteCookie(getH3Event(), name, options);
+}
+function getDefaultSessionConfig(config) {
+	return {
+		name: "start",
+		...config
+	};
+}
+/**
+* Create a session manager for the current request.
+*/
+function useSession$1(config) {
+	return useSession(getH3Event(), getDefaultSessionConfig(config));
+}
+/**
+* Get the session for the current request
+*/
+function getSession$1(config) {
+	return getSession(getH3Event(), getDefaultSessionConfig(config));
+}
+/**
+* Update the session data for the current request.
+*/
+function updateSession$1(config, update) {
+	return updateSession(getH3Event(), getDefaultSessionConfig(config), update);
+}
+/**
+* Encrypt and sign the session data for the current request.
+*/
+function sealSession$1(config) {
+	return sealSession(getH3Event(), getDefaultSessionConfig(config));
+}
+/**
+* Decrypt and verify the session data for the current request.
+*/
+function unsealSession$1(config, sealed) {
+	return unsealSession(getH3Event(), getDefaultSessionConfig(config), sealed);
+}
+/**
+* Clear the session data for the current request.
+*/
+function clearSession$1(config) {
+	return clearSession(getH3Event(), {
+		name: "start",
+		...config
+	});
+}
 function getResponse() {
 	return getH3Event().res;
+}
+function getValidatedQuery$1(schema) {
+	return getValidatedQuery(getH3Event(), schema);
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 /**
@@ -102,7 +290,7 @@ var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-DcrvULnY.mjs");
+	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-DNNKU8Ic.mjs");
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -121,7 +309,80 @@ async function getStartManifest(matchedRoutes) {
 		routes: manifestRoutes
 	};
 }
-var manifest = {};
+var manifest = {
+	"1fcfa3b1a144e03efc2e013c73fcac8af26f0051e181fc78330e6e71ac2e11e9": {
+		functionName: "reviewStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"28bad7c65df0379c2e151c9080b2bd7d62769ae666032b7795a018964a1bb1e9": {
+		functionName: "addIssueRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"2e12d765ef5e3de6b6197f5fabe4d57c8bb8cdd27387220a83dad3635c84ed21": {
+		functionName: "submitStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"6077c23a468c328bbcae9564ee63b74ed0f9e4293fb98f825eebb9dc05d13026": {
+		functionName: "markNoticeReadRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"68ee486544852ed167e4a2e1e425af39c9c6ed073f66c83b017e99ba3686e016": {
+		functionName: "saveStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"6d6b1343f720480cde55877d50018be70b8d9d80cd0fee48aea271c879732847": {
+		functionName: "setResponseQualityRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"74195336819b6fb7d0ca30e6829da8c187787c9d726d0df07e932d027221a061": {
+		functionName: "markAllNoticesReadRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"8cf5b87ecc41789bbecc6f9544a0bc02bd9844895ff580e78170f82ab6e8f2cb": {
+		functionName: "setIssueStatusRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"8e86c7fe0dfaae06552024656212369279b3dc0594eee0f0c0f127ea1118fc77": {
+		functionName: "changeStudyStatus_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"92a9721e072dcdf5e757f04da723f12f437c8d67c18e5ba416fad65de8e2cfd1": {
+		functionName: "updateProfileRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"984c35103e668dff460c9df7317091d0dd37422863424212e2b33cdd07f2033b": {
+		functionName: "markResponseCompleteRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"9b32d458af3d149828564d00cf01d56e09933fdb952671e5d94a7791dee06730": {
+		functionName: "declineStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"9e7a87359373e22b7676f6cbd47efab22b250dd9260fb60f8d6fb7513f0a8f14": {
+		functionName: "withdrawFromStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"aaef1711f463ac9d7e301820ca977bdd3483dff82f780670377b1a0ca0502c22": {
+		functionName: "updatePreferencesRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"c94263dcd122d6acf0626ae0455e5038326509e43bd84667145c8e4c995ffad2": {
+		functionName: "setOwnRoleRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"dab092d7f3ef07684970bb15d9510010d0de3c0c0f9ea88a26c07db705677464": {
+		functionName: "loadAppSnapshot_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"de61f75d8de712e59c2c3fe7b093f3e6d933c42032287cd9a54c77c61da5b73e": {
+		functionName: "suspendUserRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	},
+	"fd37e3a9806899dd717fa2fb898a95c5bb0acc03e1d418ef01379c65a1c33d42": {
+		functionName: "consentToStudyRequest_createServerFn_handler",
+		importer: () => import("./server-IzypNgak.mjs")
+	}
+};
 async function getServerFnById(id, access) {
 	const serverFnInfo = manifest[id];
 	if (!serverFnInfo) throw new Error("Server function info not found for " + id);
@@ -133,6 +394,7 @@ async function getServerFnById(id, access) {
 }
 var TSS_FORMDATA_CONTEXT = "__TSS_CONTEXT";
 var TSS_SERVER_FUNCTION = Symbol.for("TSS_SERVER_FUNCTION");
+var TSS_SERVER_FUNCTION_FACTORY = Symbol.for("TSS_SERVER_FUNCTION_FACTORY");
 var X_TSS_SERIALIZED = "x-tss-serialized";
 var X_TSS_RAW_RESPONSE = "x-tss-raw";
 /** Content-Type for multiplexed framed responses (RawStream support) */
@@ -382,6 +644,152 @@ function createNullProtoObject(source) {
 	for (const key of Object.keys(source)) if (isSafeKey(key)) obj[key] = source[key];
 	return obj;
 }
+var getStartContextServerOnly = getStartContext;
+var createServerFn = (options, __opts) => {
+	const resolvedOptions = __opts || options || {};
+	if (typeof resolvedOptions.method === "undefined") resolvedOptions.method = "GET";
+	const setValidator = (validator) => {
+		return createServerFn(void 0, {
+			...resolvedOptions,
+			validator,
+			inputValidator: validator
+		});
+	};
+	const res = {
+		options: resolvedOptions,
+		middleware: (middleware) => {
+			const newMiddleware = [...resolvedOptions.middleware || []];
+			middleware.forEach((item) => {
+				if (TSS_SERVER_FUNCTION_FACTORY in item) {
+					if (item.options.middleware) newMiddleware.push(...item.options.middleware);
+				} else newMiddleware.push(item);
+			});
+			const res = createServerFn(void 0, {
+				...resolvedOptions,
+				middleware: newMiddleware
+			});
+			res[TSS_SERVER_FUNCTION_FACTORY] = true;
+			return res;
+		},
+		validator: setValidator,
+		inputValidator: setValidator,
+		handler: (...args) => {
+			const [extractedFn, serverFn] = args;
+			const newOptions = {
+				...resolvedOptions,
+				extractedFn,
+				serverFn
+			};
+			const resolvedMiddleware = [...newOptions.middleware || [], serverFnBaseToMiddleware(newOptions)];
+			extractedFn.method = resolvedOptions.method;
+			return Object.assign(async (opts) => {
+				const result = await executeMiddleware$1(resolvedMiddleware, "client", {
+					...extractedFn,
+					...newOptions,
+					data: opts?.data,
+					headers: opts?.headers,
+					signal: opts?.signal,
+					fetch: opts?.fetch,
+					context: createNullProtoObject()
+				});
+				const redirect = parseRedirect(result.error);
+				if (redirect) throw redirect;
+				if (result.error) throw result.error;
+				return result.result;
+			}, {
+				...extractedFn,
+				method: resolvedOptions.method,
+				__executeServer: async (opts) => {
+					const startContext = getStartContextServerOnly();
+					const serverContextAfterGlobalMiddlewares = startContext.contextAfterGlobalMiddlewares;
+					return await executeMiddleware$1(resolvedMiddleware, "server", {
+						...extractedFn,
+						data: opts.data,
+						method: opts.method ?? resolvedOptions.method,
+						serverFnMeta: extractedFn.serverFnMeta,
+						context: safeObjectMerge(opts.context, serverContextAfterGlobalMiddlewares),
+						request: startContext.request
+					}).then((d) => ({
+						result: d.result,
+						error: d.error,
+						context: d.sendContext
+					}));
+				}
+			});
+		}
+	};
+	const fun = (options) => {
+		return createServerFn(void 0, {
+			...resolvedOptions,
+			...options
+		});
+	};
+	return Object.assign(fun, res);
+};
+async function executeMiddleware$1(middlewares, env, opts) {
+	let flattenedMiddlewares = flattenMiddlewares([...getStartOptions()?.functionMiddleware || [], ...middlewares]);
+	if (env === "server") {
+		const startContext = getStartContextServerOnly({ throwIfNotFound: false });
+		if (startContext?.executedRequestMiddlewares) flattenedMiddlewares = flattenedMiddlewares.filter((m) => !startContext.executedRequestMiddlewares.has(m));
+	}
+	const callNextMiddleware = async (ctx) => {
+		const nextMiddleware = flattenedMiddlewares.shift();
+		if (!nextMiddleware) return ctx;
+		try {
+			let validator = "validator" in nextMiddleware.options ? nextMiddleware.options.validator : void 0;
+			if (!validator && "inputValidator" in nextMiddleware.options) validator = nextMiddleware.options.inputValidator;
+			if (validator && env === "server") ctx.data = await execValidator(validator, ctx.data);
+			let middlewareFn = void 0;
+			if (env === "client") {
+				if ("client" in nextMiddleware.options) middlewareFn = nextMiddleware.options.client;
+			} else if ("server" in nextMiddleware.options) middlewareFn = nextMiddleware.options.server;
+			if (middlewareFn) {
+				const userNext = async (userCtx = {}) => {
+					const result = await callNextMiddleware({
+						...ctx,
+						...userCtx,
+						context: safeObjectMerge(ctx.context, userCtx.context),
+						sendContext: safeObjectMerge(ctx.sendContext, userCtx.sendContext),
+						headers: mergeHeaders(ctx.headers, userCtx.headers),
+						_callSiteFetch: ctx._callSiteFetch,
+						fetch: ctx._callSiteFetch ?? userCtx.fetch ?? ctx.fetch,
+						result: userCtx.result !== void 0 ? userCtx.result : userCtx instanceof Response ? userCtx : ctx.result,
+						error: userCtx.error ?? ctx.error
+					});
+					if (result.error) throw result.error;
+					return result;
+				};
+				const result = await middlewareFn({
+					...ctx,
+					next: userNext
+				});
+				if (isRedirect(result)) return {
+					...ctx,
+					error: result
+				};
+				if (result instanceof Response) return {
+					...ctx,
+					result
+				};
+				if (!result) throw new Error("User middleware returned undefined. You must call next() or return a result in your middlewares.");
+				return result;
+			}
+			return callNextMiddleware(ctx);
+		} catch (error) {
+			return {
+				...ctx,
+				error
+			};
+		}
+	};
+	return callNextMiddleware({
+		...opts,
+		headers: opts.headers || {},
+		sendContext: opts.sendContext || {},
+		context: opts.context || createNullProtoObject(),
+		_callSiteFetch: opts.fetch
+	});
+}
 function flattenMiddlewares(middlewares, maxDepth = 100) {
 	const seen = /* @__PURE__ */ new Set();
 	const flattened = [];
@@ -397,6 +805,40 @@ function flattenMiddlewares(middlewares, maxDepth = 100) {
 	};
 	recurse(middlewares, 0);
 	return flattened;
+}
+async function execValidator(validator, input) {
+	if (validator == null) return {};
+	if ("~standard" in validator) {
+		const result = await validator["~standard"].validate(input);
+		if (result.issues) throw new Error(JSON.stringify(result.issues, void 0, 2));
+		return result.value;
+	}
+	if ("parse" in validator) return validator.parse(input);
+	if (typeof validator === "function") return validator(input);
+	throw new Error("Invalid validator type!");
+}
+function serverFnBaseToMiddleware(options) {
+	return {
+		"~types": void 0,
+		options: {
+			inputValidator: options.validator ?? options.inputValidator,
+			client: async ({ next, sendContext, fetch, ...ctx }) => {
+				const payload = {
+					...ctx,
+					context: sendContext,
+					fetch
+				};
+				return next(await options.extractedFn?.(payload));
+			},
+			server: async ({ next, ...ctx }) => {
+				const result = await options.serverFn?.(ctx);
+				return next({
+					...ctx,
+					result
+				});
+			}
+		}
+	};
 }
 var createMiddleware = (options, __opts) => {
 	const resolvedOptions = {
@@ -1343,7 +1785,7 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		import("./router-VYkCRKPL.mjs").then((n) => n.t),
+		import("./router-ByjMWPoT.mjs").then((n) => n.t),
 		import("./start-5Z2QO8AU.mjs"),
 		import("./empty-plugin-adapters-D9UWiqvJ.mjs")
 	]);
@@ -1377,6 +1819,15 @@ var responseBodySources = /* @__PURE__ */ new WeakMap();
 function disposeResponseResult(result, reason) {
 	const response = getResponseFromResult(result);
 	if (isSsrResponse(response) || response instanceof Response) disposeSsrResponse(response, reason);
+}
+/**
+* Marks `response` as directly derived from the current `source`.
+* Middleware must consume or cancel any other `clone()` or `tee()` branches.
+*/
+function transferResponseBodyOwnership(source, response) {
+	if (!source.body || !response.body) throw new Error("Response body ownership requires two response bodies");
+	responseBodySources.set(response, source);
+	return response;
 }
 function hasResponseBody(value) {
 	return value instanceof Response && value.body !== null;
@@ -1800,6 +2251,53 @@ async function handleServerRoutes({ getRouter, request, url, executeRouter, cont
 		handlerType: "router"
 	}, request.signal, terminalNext));
 }
+var VIRTUAL_MODULES = {
+	startManifest: "tanstack-start-manifest:v",
+	serverFnResolver: "#tanstack-start-server-fn-resolver",
+	pluginAdapters: "#tanstack-start-plugin-adapters"
+};
+var server_exports = /* @__PURE__ */ __exportAll$1({
+	HEADERS: () => HEADERS,
+	StartServer: () => StartServer,
+	VIRTUAL_MODULES: () => VIRTUAL_MODULES,
+	attachRouterServerSsrUtils: () => attachRouterServerSsrUtils,
+	clearResponseHeaders: () => clearResponseHeaders,
+	clearSession: () => clearSession$1,
+	createRequestHandler: () => createRequestHandler,
+	createStartHandler: () => createStartHandler,
+	defaultRenderHandler: () => defaultRenderHandler,
+	defaultStreamHandler: () => defaultStreamHandler,
+	defineHandlerCallback: () => defineHandlerCallback,
+	deleteCookie: () => deleteCookie$1,
+	getCookie: () => getCookie,
+	getCookies: () => getCookies,
+	getRequest: () => getRequest,
+	getRequestHeader: () => getRequestHeader,
+	getRequestHeaders: () => getRequestHeaders,
+	getRequestHost: () => getRequestHost$1,
+	getRequestIP: () => getRequestIP$1,
+	getRequestProtocol: () => getRequestProtocol$1,
+	getRequestUrl: () => getRequestUrl,
+	getResponse: () => getResponse,
+	getResponseHeader: () => getResponseHeader,
+	getResponseHeaders: () => getResponseHeaders,
+	getResponseStatus: () => getResponseStatus,
+	getSession: () => getSession$1,
+	getValidatedQuery: () => getValidatedQuery$1,
+	removeResponseHeader: () => removeResponseHeader,
+	requestHandler: () => requestHandler,
+	sealSession: () => sealSession$1,
+	setCookie: () => setCookie$1,
+	setResponseHeader: () => setResponseHeader,
+	setResponseHeaders: () => setResponseHeaders,
+	setResponseStatus: () => setResponseStatus,
+	transferResponseBodyOwnership: () => transferResponseBodyOwnership,
+	transformPipeableStreamWithRouter: () => transformPipeableStreamWithRouter,
+	transformReadableStreamWithRouter: () => transformReadableStreamWithRouter,
+	unsealSession: () => unsealSession$1,
+	updateSession: () => updateSession$1,
+	useSession: () => useSession$1
+});
 var fetch = createStartHandler(defaultStreamHandler);
 function createServerEntry(entry) {
 	return { async fetch(...args) {
@@ -1808,4 +2306,4 @@ function createServerEntry(entry) {
 }
 var server_default = createServerEntry({ fetch });
 //#endregion
-export { createServerEntry, server_default as default, ssr_exports as t };
+export { getServerFnById as a, ssr_exports as c, createServerEntry, server_default as default, TSS_SERVER_FUNCTION as i, createMiddleware as n, getCookie as o, createServerFn as r, getRequest as s, server_exports as t };

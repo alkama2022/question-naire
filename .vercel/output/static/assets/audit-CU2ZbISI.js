@@ -1,1 +1,0 @@
-import{n as e}from"./clsx-BbohabLV.js";import{r as t}from"./shells-IB5-QuUW.js";import{r as n}from"./views-B-i8HRW4.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Audit history`,description:`A local log of demo actions. Resetting demo data clears it. A production log would need to be append-only on a server.`}),(0,r.jsx)(n,{})]});export{i as component};

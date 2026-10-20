@@ -9,7 +9,7 @@
  *
  *   node scripts/preview.mjs stop|restart
  */
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -25,6 +25,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PREVIEW_PORT = 8081;
 const PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/`;
+
+/**
+ * This machine's process model.
+ *
+ * Linux has `/proc`: the port owner is found by matching socket inodes, and a
+ * process group can be signalled as a unit. Windows has neither, so the port
+ * owner comes from `netstat` and the process tree is ended with `taskkill`.
+ */
+const IS_WINDOWS = process.platform === "win32";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PID_FILE = join(ROOT, ".grok/preview.pid");
@@ -61,6 +70,28 @@ export function parsePgid(stat) {
 }
 
 const TCP_LISTEN = "0A";
+
+/**
+ * The pids listening on `port`, as `netstat` reports them.
+ *
+ * Windows has no `/proc/net/tcp`, so the port owner is read from the network
+ * statistics table instead.
+ */
+export function parseNetstatListeners(text, port) {
+  const wanted = `:${port}`;
+  const pids = new Set();
+  for (const line of String(text ?? "").split(/\r?\n/)) {
+    const cols = line.trim().split(/\s+/);
+    // TCP  <local>  <foreign>  <state>  <pid>
+    if (cols.length < 5) continue;
+    if (!/^TCP$/i.test(cols[0])) continue;
+    if (!cols[1].endsWith(wanted)) continue;
+    if (!/^LISTENING$/i.test(cols[3])) continue;
+    const pid = Number.parseInt(cols[4], 10);
+    if (Number.isInteger(pid) && pid > 1) pids.add(pid);
+  }
+  return [...pids];
+}
 
 /** Socket inodes of the LISTEN sockets on `port` in a /proc/net/tcp{,6} dump. */
 export function parseListenerInodes(procNetTcp, port) {
