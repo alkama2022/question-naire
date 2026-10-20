@@ -27,3 +27,28 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
     </main>
   );
 }
+
+/**
+ * The page for a URL that does not exist.
+ *
+ * Without this the router falls back to a bare "Not Found" paragraph; with it,
+ * a mistyped or stale link lands on a page that explains itself and offers a
+ * way back.
+ */
+export function AppNotFoundComponent() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
+      <h1 className="font-display text-3xl font-semibold">That page is not here</h1>
+      <p className="max-w-md text-sm text-ink-soft">
+        The link may be out of date, or the study may have been closed. Start again from the
+        homepage.
+      </p>
+      <a
+        href="/"
+        className="mt-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground"
+      >
+        Go to the homepage
+      </a>
+    </main>
+  );
+}

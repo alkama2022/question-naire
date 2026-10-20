@@ -11,6 +11,7 @@ import { OriginNote } from "@/components/layout/shells";
 import { deadlinePhrase, formatDate, researcherLabel } from "@/lib/research/format";
 import { researchService } from "@/lib/research/service";
 import { useDemoStore, useSessionUser } from "@/lib/research/store";
+import { useDataMode } from "@/lib/research/use-data-mode";
 import { contactSchema } from "@/lib/research/validators";
 
 export function StudyDetail({ studyId }: { studyId: string }) {
@@ -144,6 +145,7 @@ export function StudyDetail({ studyId }: { studyId: string }) {
 }
 
 function ParticipationCard({ studyId }: { studyId: string }) {
+  const server = useDataMode() === "server";
   const study = useDemoStore((state) => state.studies.find((item) => item.id === studyId));
   const user = useSessionUser();
   const application = useDemoStore((state) =>
@@ -196,9 +198,9 @@ function ParticipationCard({ studyId }: { studyId: string }) {
       <Card className="h-fit p-5">
         <h2 className="font-display text-xl font-semibold">You consented</h2>
         <p className="mt-2 text-sm text-ink-soft">
-          Recorded in this browser on {formatDate(application.updatedAt)}. You can withdraw while the
-          study is still open. Withdrawing does not delete anything already stored in an external
-          questionnaire.
+          Recorded {server ? "on the server" : "in this browser"} on{" "}
+          {formatDate(application.updatedAt)}. You can withdraw while the study is still open.
+          Withdrawing does not delete anything already stored in an external questionnaire.
         </p>
         {study.status !== "completed" ? (
           <Button
@@ -226,8 +228,8 @@ function ParticipationCard({ studyId }: { studyId: string }) {
       <Card className="h-fit p-5">
         <h2 className="font-display text-xl font-semibold">You withdrew</h2>
         <p className="mt-2 text-sm text-ink-soft">
-          That decision is stored in this browser. You can consent again only if the study is still
-          active.
+          That decision is stored {server ? "on the server" : "in this browser"}. You can consent again
+          only if the study is still active.
         </p>
         {study.status === "active" ? (
           <p className="mt-3 text-sm">Use the screening below if you want to rejoin.</p>
@@ -279,7 +281,9 @@ function ParticipationCard({ studyId }: { studyId: string }) {
             : "This study is closed to new participants."}
         </p>
         {application?.status === "declined" ? (
-          <p className="mt-3 text-sm">You previously declined. That note stays in this browser.</p>
+          <p className="mt-3 text-sm">
+            You previously declined. That note stays {server ? "on the server" : "in this browser"}.
+          </p>
         ) : null}
       </Card>
     );
@@ -412,12 +416,22 @@ function ReportDialog({
   studyId: string;
   title: string;
 }) {
+  const server = useDataMode() === "server";
   const user = useSessionUser();
   const [subject, setSubject] = useState(`Problem with: ${title}`);
   const [body, setBody] = useState("");
   const [error, setError] = useState("");
   return (
-    <Modal open={open} onOpenChange={onOpenChange} title="Report a problem" description="This stays in the demo inbox on this browser. It is not emailed.">
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Report a problem"
+      description={
+        server
+          ? "This goes to the administrator inbox on the server. It is not emailed."
+          : "This stays in the demo inbox on this browser. It is not emailed."
+      }
+    >
       <form
         className="grid gap-3"
         onSubmit={async (event) => {
@@ -453,7 +467,7 @@ function ReportDialog({
         <Field label="What happened?" htmlFor="report-body">
           <Textarea id="report-body" value={body} onChange={(event) => setBody(event.target.value)} />
         </Field>
-        <Button type="submit">Save report in this browser</Button>
+        <Button type="submit">{server ? "Send report" : "Save report in this browser"}</Button>
       </form>
     </Modal>
   );

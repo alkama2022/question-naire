@@ -12,6 +12,8 @@ import { OriginNote } from "@/components/layout/shells";
 import { deadlinePhrase, formatDate, researcherLabel } from "@/lib/research/format";
 import { recruitmentSnapshot, researcherActions } from "@/lib/research/metrics";
 import { toForm, useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
+import { researchService } from "@/lib/research/service";
+import { useDataMode } from "@/lib/research/use-data-mode";
 import type { Study, StudyStatus } from "@/lib/research/types";
 import { CATEGORIES, STATUS_LABEL } from "@/lib/research/types";
 import { validateFullStudy } from "@/lib/research/validators";
@@ -335,21 +337,21 @@ function StudyActionMenu({ study }: { study: Study }) {
   const actions = researcherActions(study.status);
   const [confirm, setConfirm] = useState<null | "submit" | "pause" | "resume" | "complete" | "open">(null);
   const [busy, setBusy] = useState(false);
+  const server = useDataMode() === "server";
   const user = useSessionUser();
-  function run(kind: NonNullable<typeof confirm>) {
+  async function run(kind: NonNullable<typeof confirm>) {
     if (!user) return;
     setBusy(true);
-    const state = useDemoStore.getState();
     const result =
       kind === "submit"
-        ? state.submitForReview(user.id, study.id)
+        ? await researchService.submitForReview(user.id, study.id)
         : kind === "pause"
-          ? state.setPaused(user.id, study.id, true)
+          ? await researchService.setPaused(user.id, study.id, true)
           : kind === "resume"
-            ? state.setPaused(user.id, study.id, false)
+            ? await researchService.setPaused(user.id, study.id, false)
             : kind === "complete"
-              ? state.completeStudy(user.id, study.id)
-              : state.openRecruitment(user.id, study.id);
+              ? await researchService.completeStudy(user.id, study.id)
+              : await researchService.openRecruitment(user.id, study.id);
     setBusy(false);
     setConfirm(null);
     if (result.ok) toast.success(result.message);
@@ -414,9 +416,15 @@ function StudyActionMenu({ study }: { study: Study }) {
         body={
           confirm === "submit"
             ? validateFullStudy(toForm(study)).title
-              ? "Some required fields are still empty. You can still try, and the form will explain what is missing. Nothing is sent to a server."
-              : "It will be marked Pending review in this browser. It will not be public, and no email is sent."
-            : "This updates demo data in this browser only."
+              ? server
+                ? "Some required fields are still empty. You can still try, and the form will explain what is missing."
+                : "Some required fields are still empty. You can still try, and the form will explain what is missing. Nothing is sent to a server."
+              : server
+                ? "It will be marked Pending review on the server. It will not be public until it is approved and opened."
+                : "It will be marked Pending review in this browser. It will not be public, and no email is sent."
+            : server
+              ? "This changes the record on the server."
+              : "This updates demo data in this browser only."
         }
         confirmLabel="Confirm"
         busy={busy}

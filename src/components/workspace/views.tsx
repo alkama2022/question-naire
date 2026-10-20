@@ -12,10 +12,12 @@ import { deadlinePhrase, formatDate, formatDateTime } from "@/lib/research/forma
 import { recruitmentSnapshot } from "@/lib/research/metrics";
 import { researchService } from "@/lib/research/service";
 import { useDemoQuery, useDemoStore, useSessionUser } from "@/lib/research/store";
+import { useDataMode } from "@/lib/research/use-data-mode";
 import type { IssueStatus, Study } from "@/lib/research/types";
 import { STATUS_LABEL } from "@/lib/research/types";
 
 export function ResearcherOverview() {
+  const server = useDataMode() === "server";
   const user = useSessionUser();
   const studies = useDemoQuery((state) => state.studies.filter((study) => study.ownerId === user?.id));
   const responses = useDemoStore((state) => state.responses);
@@ -188,6 +190,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 export function ReportsPanel() {
+  const server = useDataMode() === "server";
   const user = useSessionUser();
   const studies = useDemoQuery((state) => state.studies.filter((study) => study.ownerId === user?.id));
   const responses = useDemoStore((state) => state.responses);
@@ -367,6 +370,7 @@ export function ParticipantOverview() {
 }
 
 export function ApplicationsList({ history = false }: { history?: boolean }) {
+  const server = useDataMode() === "server";
   const user = useSessionUser();
   const applications = useDemoStore((state) => state.applications);
   const studies = useDemoStore((state) => state.studies);
@@ -417,6 +421,7 @@ export function ApplicationsList({ history = false }: { history?: boolean }) {
 }
 
 export function AdminOverview() {
+  const server = useDataMode() === "server";
   const studies = useDemoStore((state) => state.studies);
   const users = useDemoStore((state) => state.users);
   const issues = useDemoStore((state) => state.issues);
@@ -481,6 +486,7 @@ export function ReviewList() {
 }
 
 export function ReviewDetail({ studyId }: { studyId: string }) {
+  const server = useDataMode() === "server";
   const study = useDemoStore((state) => state.studies.find((item) => item.id === studyId));
   const owner = useDemoStore((state) => state.users.find((user) => user.id === study?.ownerId));
   const actor = useSessionUser();
@@ -604,6 +610,7 @@ export function ReviewDetail({ studyId }: { studyId: string }) {
 }
 
 export function UserAdmin() {
+  const server = useDataMode() === "server";
   const actor = useSessionUser();
   const users = useDemoStore((state) => state.users);
   const [target, setTarget] = useState<null | { id: string; suspend: boolean; email: string }>(null);
@@ -726,6 +733,7 @@ export function MonitoringTable() {
 }
 
 export function IssuesPanel() {
+  const server = useDataMode() === "server";
   const actor = useSessionUser();
   const issues = useDemoStore((state) => state.issues);
   const [pending, setPending] = useState<null | { id: string; status: IssueStatus }>(null);
