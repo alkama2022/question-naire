@@ -190,6 +190,18 @@ export function stopOutcome({ signalled, stubborn, after }) {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function isAlive(pid) {
+  if (IS_WINDOWS) {
+    // Windows has no signal-0 probe; ask the process table instead.
+    try {
+      const out = execFileSync("tasklist", ["/FI", `PID eq ${pid}`, "/NH"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      return new RegExp(`\\b${pid}\\b`).test(out);
+    } catch {
+      return false;
+    }
+  }
   try {
     process.kill(pid, 0);
     return true;
@@ -199,6 +211,7 @@ function isAlive(pid) {
 }
 
 function pgidOf(pid) {
+  if (IS_WINDOWS) return null;
   try {
     return parsePgid(readFileSync(`/proc/${pid}/stat`, "utf8"));
   } catch {
@@ -207,6 +220,18 @@ function pgidOf(pid) {
 }
 
 function killPid(pid, signal) {
+  if (IS_WINDOWS) {
+    // No process groups and no SIGTERM: end the tree, gently first.
+    const force = signal === "SIGKILL" ? "/F" : "";
+    try {
+      execFileSync("taskkill", ["/PID", String(pid), "/T", force].filter(Boolean), {
+        stdio: "ignore",
+      });
+    } catch {
+      // Exited between the liveness check and the kill.
+    }
+    return;
+  }
   // restart() detaches the server into its own process group, so signal the
   // group to reach `vite` under the `npm` wrapper. Only for a leader: `-pid` on
   // a pid that leads no group still reaches any unrelated group numbered pid.
@@ -226,6 +251,21 @@ function killPid(pid, signal) {
 }
 
 function cmdlineOf(pid) {
+  if (IS_WINDOWS) {
+    try {
+      return execFileSync(
+        "powershell",
+        [
+          "-NoProfile",
+          "-Command",
+          `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").CommandLine`,
+        ],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+      );
+    } catch {
+      return "";
+    }
+  }
   try {
     return readFileSync(`/proc/${pid}/cmdline`, "utf8");
   } catch {
@@ -274,6 +314,19 @@ function pidsForSocketInodes(inodes) {
  * whose owning pid could not be resolved (an fd dir we may not read).
  */
 function portOwners() {
+  if (IS_WINDOWS) {
+    let table = "";
+    try {
+      table = execFileSync("netstat", ["-ano", "-p", "TCP"], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+    } catch {
+      return { pids: [], unattributed: false };
+    }
+    const pids = parseNetstatListeners(table, PREVIEW_PORT);
+    return { pids, unattributed: false };
+  }
   const inodes = new Set();
   for (const file of ["/proc/net/tcp", "/proc/net/tcp6"]) {
     let dump;
@@ -328,10 +381,12 @@ async function restart() {
 
   mkdirSync(dirname(LOG_FILE), { recursive: true });
   const log = openSync(LOG_FILE, "a");
-  const child = spawn("npm", ["run", "preview"], {
+  // Windows ships `npm.cmd`, and a `.cmd` can only be started through a shell.
+  const child = spawn(IS_WINDOWS ? "npm.cmd" : "npm", ["run", "preview"], {
     cwd: ROOT,
     detached: true,
     stdio: ["ignore", log, log],
+    shell: IS_WINDOWS,
   });
   child.unref();
   writeFileSync(PID_FILE, `${child.pid}\n`);
@@ -366,7 +421,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(`[preview] ${args.error}`);
     process.exit(1);
   }
-  if (!existsSync("/proc/self")) {
+  if (!IS_WINDOWS && !existsSync("/proc/self")) {
     console.error("[preview] no /proc — this script only runs inside the sandbox");
     process.exit(1);
   }
