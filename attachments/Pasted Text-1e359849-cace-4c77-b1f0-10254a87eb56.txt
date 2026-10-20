@@ -1,0 +1,543 @@
+PROFESSIONAL FRONTEND DEVELOPMENT PROMPT
+
+ResearchConnect Nigeria — Version 1.0
+
+1. Project Overview
+
+Act as a senior frontend software engineer, product designer, and UI/UX specialist with extensive experience building scalable SaaS platforms, academic research systems, and modern web applications.
+
+Design and develop the complete frontend for ResearchConnect Nigeria V1.0, a web-based research participant recruitment and management platform for Nigerian university students, postgraduate researchers, lecturers, and research teams.
+
+The platform helps researchers recruit suitable participants, organize questionnaire distribution, monitor recruitment progress, and manage research-related activities more efficiently.
+
+The initial target market is Nigerian university students, especially final-year undergraduate students conducting questionnaire-based research projects.
+
+This is an early-stage startup with a very limited budget and a solo founder. Therefore, prioritize simplicity, usability, maintainability, and a realistic minimum viable product.
+
+Do not build an unnecessarily complicated enterprise platform.
+
+2. Main Product Objective
+
+Build a professional and trustworthy platform that allows researchers to:
+
+- Create and manage research study requests.
+- Define participant eligibility criteria.
+- Submit questionnaire links from existing survey tools.
+- Track recruitment progress and response targets.
+- Review recruitment records and response-quality flags.
+- Communicate recruitment requirements clearly.
+- Access reports and export permitted data.
+
+Allow participants to discover suitable studies, understand participation requirements, provide informed consent, and express interest in participating.
+
+Provide an administrative interface for reviewing study requests and managing the recruitment workflow.
+
+3. Technology Stack
+
+Use the following frontend technologies:
+
+- Next.js with the App Router.
+- React.
+- TypeScript with strict type checking.
+- Tailwind CSS.
+- shadcn/ui for accessible interface components.
+- Lucide React for icons.
+- React Hook Form and Zod for form validation.
+- Recharts for dashboard visualizations when useful.
+- Supabase client integration for future authentication and PostgreSQL data access.
+
+Use stable, compatible versions of the selected dependencies.
+
+The application must be responsive and work well on Android phones, iPhones, tablets, laptops, and desktop browsers.
+
+Do not require native mobile applications for V1.0.
+
+4. Brand Identity and Visual Direction
+
+Create a distinctive, professional academic technology brand.
+
+Brand name: ResearchConnect Nigeria
+
+Suggested tagline: "Connecting Research with the Right People."
+
+Visual direction:
+
+- Clean, modern, credible, and approachable.
+- Professional SaaS dashboard design.
+- Strong visual hierarchy.
+- Generous spacing and readable typography.
+- Subtle shadows and carefully selected borders.
+- Consistent component styles.
+- Clear status indicators.
+- Minimal unnecessary decoration.
+
+Suggested color palette:
+
+- Primary: Deep navy blue, #163B65.
+- Secondary: Teal, #0F9D8A.
+- Main background: #F7F9FC.
+- Surface: #FFFFFF.
+- Primary text: #172B4D.
+- Secondary text: #64748B.
+- Success: #15803D.
+- Warning: #D97706.
+- Error: #DC2626.
+
+Use Inter or a comparable modern sans-serif typeface.
+
+Ensure sufficient color contrast and do not communicate important statuses through color alone.
+
+Use consistent border radii, spacing, and button sizes throughout the application.
+
+The interface must look like a real commercial SaaS product rather than a generic AI-generated template.
+
+5. Application Structure
+
+Implement three distinct application areas:
+
+A. Public website.
+
+B. Researcher dashboard.
+
+C. Participant and administrator interfaces.
+
+Use shared layouts, reusable components, consistent navigation, and a maintainable project structure.
+
+A. Public Website
+
+Create the following pages:
+
+1. Home page.
+2. How It Works.
+3. For Researchers.
+4. For Participants.
+5. Browse Studies.
+6. About Us.
+7. Contact.
+8. Privacy Policy.
+9. Terms of Service.
+10. Login.
+11. Registration.
+
+The home page should include:
+
+- A professional navigation bar.
+- Brand logo and name.
+- A clear hero headline.
+- A short explanation of the problem the platform solves.
+- Primary call to action: "Find Research Participants".
+- Secondary call to action: "Explore Studies".
+- A visual preview of the platform dashboard.
+- A three-step explanation of how the platform works.
+- Benefits for researchers.
+- Benefits for participants.
+- A clear explanation of response-quality checks and their limitations.
+- A final call to action.
+- A professional footer.
+
+Use realistic Nigerian academic examples, but do not invent customer testimonials, partnerships, university endorsements, or usage statistics.
+
+B. Authentication Interface
+
+Create:
+
+- Researcher registration.
+- Participant registration.
+- Login.
+- Forgot password.
+- Password reset.
+- Email verification states.
+- Logout confirmation where appropriate.
+
+During registration, allow users to select their intended role.
+
+Do not allow users to assign themselves administrative privileges.
+
+Provide accessible validation messages, password visibility controls, loading indicators, and helpful error states.
+
+Prepare the frontend for Supabase authentication, but do not pretend authentication is working if backend configuration is missing.
+
+C. Researcher Dashboard
+
+Create a polished dashboard with a collapsible sidebar on desktop and an accessible mobile navigation menu.
+
+Sidebar navigation:
+
+- Overview.
+- My Studies.
+- Create Study.
+- Recruitment Tracking.
+- Reports and Exports.
+- Notifications.
+- Settings.
+- Help and Support.
+
+Dashboard overview:
+
+- Total studies.
+- Active studies.
+- Completed studies.
+- Recruitment progress.
+- Recent study activity.
+- Upcoming deadlines.
+- Recent notifications.
+- Quick-action buttons.
+
+Use meaningful sample data for the development preview and clearly separate demonstration data from live records.
+
+D. Create Study Workflow
+
+Create a multi-step form with a progress indicator.
+
+Step 1: Study information.
+
+Fields:
+
+- Study title.
+- Research purpose.
+- Brief description.
+- Research category.
+- Research institution, if applicable.
+
+Step 2: Participant requirements.
+
+Fields:
+
+- Target population.
+- Eligible age range, where appropriate.
+- University or geographic location, where relevant.
+- Participant inclusion criteria.
+- Participant exclusion criteria.
+- Additional eligibility questions, if needed.
+
+Step 3: Recruitment requirements.
+
+Fields:
+
+- Desired number of participants.
+- Recruitment deadline.
+- Preferred recruitment method.
+- Estimated completion time.
+- Questionnaire URL.
+- Incentive information, if applicable.
+
+Step 4: Consent and review.
+
+Include:
+
+- Participant information statement.
+- Data privacy acknowledgement.
+- Confirmation of appropriate research approval where required.
+- A summary of submitted information.
+- Save draft.
+- Submit for review.
+
+Validate inputs, explain errors clearly, and preserve entered information when users navigate between steps.
+
+Do not automatically publish studies before administrative review.
+
+E. My Studies
+
+Create a study management page with:
+
+- Search.
+- Filters.
+- Status tabs.
+- Sort options.
+- List and card views.
+- Pagination where necessary.
+
+Study statuses should include:
+
+- Draft.
+- Pending Review.
+- Approved.
+- Active.
+- Paused.
+- Completed.
+- Rejected.
+
+Each study card should display its title, creation date, target sample size, recruitment progress, deadline, and current status.
+
+Provide appropriate actions such as View Details, Edit Draft, View Progress, and Submit for Review.
+
+Only show actions that are valid for the study's current state.
+
+F. Recruitment Tracking
+
+Create a detailed recruitment page showing:
+
+- Target participant count.
+- Eligible recruitment count.
+- Completed responses.
+- Responses awaiting review.
+- Excluded responses.
+- Recruitment progress percentage.
+- Remaining target.
+- Deadline.
+- Recent recruitment activity.
+
+Use a clear progress bar and a chart only when it adds useful information.
+
+Distinguish participants recruited, questionnaire completions, and accepted responses. They are different metrics.
+
+Include quality-review labels such as:
+
+- Pending.
+- Accepted.
+- Excluded.
+- Needs Review.
+
+Do not label responses as verified or genuine without a defined verification process.
+
+G. Participant Interface
+
+Create a separate participant experience with:
+
+- Participant dashboard.
+- Browse Studies.
+- Study details.
+- Eligibility screening.
+- Consent flow.
+- My Applications.
+- Participation history.
+- Notification preferences.
+- Account settings.
+
+The study discovery page should display:
+
+- Study title.
+- Research purpose.
+- Researcher or institution, where disclosure is appropriate.
+- Eligibility requirements.
+- Estimated completion time.
+- Study deadline.
+- Incentive details, if any.
+- Participation requirements.
+
+The study details page should clearly explain what participation involves before asking for consent.
+
+Participants must be able to decline participation and withdraw where applicable.
+
+Never promise rewards that have not been confirmed.
+
+H. Administrator Dashboard
+
+Create an admin-only interface with:
+
+- Overview.
+- Pending study requests.
+- Study review.
+- User management.
+- Recruitment monitoring.
+- Reported issues.
+- Basic platform metrics.
+- Audit history.
+
+Study review should support:
+
+- View submitted details.
+- Approve a study.
+- Reject a study with a clear reason.
+- Request changes.
+- Pause a study when necessary.
+
+Require confirmation for consequential actions.
+
+Administrative controls must be protected by backend authorization. Hiding admin buttons in the frontend is not sufficient security.
+
+6. Design System and Reusable Components
+
+Create reusable components for:
+
+- Buttons.
+- Inputs.
+- Selects.
+- Checkboxes.
+- Radio groups.
+- Form errors.
+- Dialogs.
+- Dropdown menus.
+- Tooltips.
+- Badges.
+- Progress bars.
+- Tables.
+- Pagination.
+- Tabs.
+- Cards.
+- Toast notifications.
+- Loading skeletons.
+- Empty states.
+- Error states.
+- Confirmation dialogs.
+- Responsive navigation.
+
+Create consistent page headers, breadcrumbs, dashboard cards, status indicators, and form layouts.
+
+Ensure the same design patterns are used across all pages.
+
+7. Functional Requirements
+
+This must be a functional frontend, not merely a collection of static screenshots.
+
+Implement:
+
+- Navigation between pages.
+- Working buttons and links.
+- Form validation.
+- Multi-step form navigation.
+- Search and filtering.
+- Study status filters.
+- Dashboard interactions.
+- Responsive sidebar.
+- Modal and dropdown interactions.
+- Confirmation dialogs.
+- Loading, success, and error states.
+- Empty states.
+- Accessible form controls.
+- Useful feedback after user actions.
+
+If the backend is not configured, provide a clearly labelled demo mode using realistic sample data and controlled local state.
+
+Do not claim that records have been saved to a server, that emails have been sent, that payments have succeeded, or that authentication is secure when those services are not implemented.
+
+Avoid presenting local browser state as persistent production data.
+
+8. Backend Integration Preparation
+
+Prepare clean service modules for future Supabase integration.
+
+Separate the UI components from data access logic.
+
+Use typed models for:
+
+- User profiles.
+- Studies.
+- Participant profiles.
+- Study applications.
+- Response records.
+- Consent records.
+- Orders.
+
+Create clear interfaces for loading studies, submitting study requests, retrieving recruitment progress, and updating review statuses.
+
+Use environment variables for public configuration.
+
+Never expose Supabase service-role keys or other secrets in client-side code.
+
+Prepare for Row Level Security and server-side authorization.
+
+Do not implement payment processing in V1.0 unless explicitly requested later.
+
+9. Privacy, Accessibility, and Research Integrity
+
+Build the interface with privacy and responsible research participation in mind.
+
+Requirements:
+
+- Clear consent screens.
+- Minimal collection of personal information.
+- Accessible labels and error messages.
+- Keyboard navigation.
+- Sufficient contrast.
+- Responsive text and controls.
+- Appropriate privacy notices.
+- No fabricated trust badges.
+- No invented institutional partnerships.
+- No claims of guaranteed scientific validity.
+- No public exposure of participant contact details.
+
+Do not assume that eligibility screening alone guarantees truthful responses.
+
+10. Performance and Quality Standards
+
+The application should:
+
+- Load quickly on typical Nigerian mobile internet connections.
+- Avoid unnecessary large dependencies.
+- Use responsive images where relevant.
+- Minimize layout shifts.
+- Handle network failures gracefully.
+- Display useful error messages.
+- Follow TypeScript best practices.
+- Avoid duplicated components and unnecessary abstractions.
+- Include basic tests for critical forms and user flows.
+- Pass production build and lint checks.
+
+Follow semantic HTML and accessible interaction patterns.
+
+11. Required Deliverables
+
+Produce:
+
+1. A complete, organized frontend codebase.
+2. A consistent design system.
+3. Public marketing pages.
+4. Researcher dashboard.
+5. Participant dashboard.
+6. Admin interface.
+7. Responsive mobile layouts.
+8. Reusable UI components.
+9. Typed sample data.
+10. Form validation.
+11. Demo mode where the backend is unavailable.
+12. Supabase integration preparation.
+13. A clear README.
+14. A sample environment-variable file containing placeholders only.
+15. Setup and development instructions.
+16. Build and testing instructions.
+17. A list of backend functions that remain unimplemented.
+
+12. Development Workflow
+
+Before implementation:
+
+- Inspect the existing project.
+- Preserve existing working functionality.
+- Identify the current framework and dependencies.
+- Define the route structure.
+- Define shared components and the design system.
+- Establish the core TypeScript types.
+
+Then:
+
+- Implement the application shell.
+- Build the public pages.
+- Build authentication screens.
+- Build the researcher workflow.
+- Build the participant workflow.
+- Build the admin review interface.
+- Add responsive behavior.
+- Add validation and interaction states.
+- Run the build and tests.
+- Fix errors before reporting completion.
+
+Do not overwrite an existing project without understanding its structure.
+
+Do not stop after generating the landing page.
+
+13. Definition of Done
+
+Version 1.0 is complete when:
+
+- Every required page exists.
+- The interface is visually consistent.
+- Desktop and mobile layouts work.
+- Navigation and primary actions function.
+- Forms validate correctly.
+- Demo data is clearly distinguished from live data.
+- No fake backend success messages are shown.
+- Sensitive data is not exposed through frontend code.
+- The application builds successfully.
+- Setup instructions are complete.
+- Remaining backend work is documented.
+
+Final Instruction
+
+Build ResearchConnect Nigeria V1.0 as a polished, practical, trustworthy academic research recruitment platform.
+
+Prioritize the essential workflow over unnecessary features.
+
+Make the experience simple enough for a Nigerian undergraduate student using an Android phone and powerful enough to support future postgraduate and institutional users.
+
+Deliver working code, not just design recommendations, mockups, or a landing page.

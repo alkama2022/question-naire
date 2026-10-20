@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-BbohabLV.js";import{r as t}from"./shells-IB5-QuUW.js";import{i as n}from"./panels-DIQlEFYZ.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Notifications`,description:`In-app notices only.`}),(0,r.jsx)(n,{})]});export{i as component};

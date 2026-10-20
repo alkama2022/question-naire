@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "ResearchConnect Nigeria",
+      "hasCanvas": false,
+      "bodyTextLen": 3528,
+      "bodyTextHash": "dd5bf2fdbecbf8c205bc24522bc177212f2a621fd4062340d5adb940c045c264",
+      "bodyTextPrefix": "Demo mode. Accounts and study records stay in this browser. Sign",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "ResearchConnect Nigeria",
+      "hasCanvas": false,
+      "bodyTextLen": 3405,
+      "bodyTextHash": "a805d63302fc8b6317b5797f34665dea8cfb4f83df6aec4ab2b4d849299f2ddf",
+      "bodyTextPrefix": "Demo mode. Accounts and study records stay in this browser. Sign",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
