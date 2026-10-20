@@ -95,7 +95,11 @@ export function ResearcherOverview() {
       <Card className="p-5">
         <h2 className="font-display text-xl font-semibold">Recent activity</h2>
         {audits.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-soft">Actions you take in this browser will be listed here.</p>
+          <p className="mt-2 text-sm text-ink-soft">
+            {server
+              ? "Actions you take are listed here."
+              : "Actions you take in this browser will be listed here."}
+          </p>
         ) : (
           <ul className="mt-3 grid gap-2 text-sm">
             {audits.map((event) => (
@@ -192,7 +196,7 @@ export function ReportsPanel() {
       <Card className="p-5">
         <p className="text-sm text-ink-soft">
           The file contains study-level counts only. Participant names and email addresses are not
-          included. The download is generated in this browser.
+          included. The download is generated {server ? "from the records on the server" : "in this browser"}.
         </p>
         <Button
           className="mt-4"
@@ -376,7 +380,11 @@ export function ApplicationsList({ history = false }: { history?: boolean }) {
     return (
       <EmptyState
         title={history ? "No history yet" : "No applications yet"}
-        body="When you consent, decline, or withdraw, the record stays in this browser."
+        body={
+          server
+            ? "When you consent, decline, or withdraw, the record is kept on the server."
+            : "When you consent, decline, or withdraw, the record stays in this browser."
+        }
       />
     );
   }
@@ -416,8 +424,9 @@ export function AdminOverview() {
   return (
     <div className="grid gap-4">
       <p className="rounded-lg border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
-        Admin preview. These controls change demo data in this browser only. Production would
-        require server-side authorization. Hiding a button is not enough.
+        {server
+          ? "Administrator. These controls are authorized on the server — the browser cannot grant itself this access, and every action is written to the audit log."
+          : "Admin preview. These controls change demo data in this browser only. Production would require server-side authorization. Hiding a button is not enough."}
       </p>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Pending requests" value={pending.length} />
@@ -478,7 +487,12 @@ export function ReviewDetail({ studyId }: { studyId: string }) {
   const [note, setNote] = useState("");
   const [action, setAction] = useState<null | "approve" | "reject" | "changes" | "pause">(null);
   if (!study || !actor) {
-    return <EmptyState title="Study not found" body="It is not in this browser." />;
+    return (
+      <EmptyState
+        title="Study not found"
+        body={server ? "It is not on the server." : "It is not in this browser."}
+      />
+    );
   }
   const fields: Array<[string, string]> = [
     ["Purpose", study.purpose],
@@ -608,7 +622,11 @@ export function UserAdmin() {
                 <td className="px-4 py-3">
                   {user.name}
                   <span className="block text-xs text-ink-soft">
-                    {user.origin === "sample" ? "Sample account" : "Created in this browser"}
+                    {user.origin === "sample"
+                      ? "Sample account"
+                      : server
+                        ? "Account on the server"
+                        : "Created in this browser"}
                   </span>
                 </td>
                 <td className="px-4 py-3">{user.role}</td>

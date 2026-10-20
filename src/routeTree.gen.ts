@@ -46,6 +46,7 @@ import { Route as StudiesIndexRouteImport } from './routes/studies/index'
 import { Route as StudiesStudyIdRouteImport } from './routes/studies/$studyId'
 import { Route as AdminReviewsIndexRouteImport } from './routes/admin/reviews/index'
 import { Route as AdminReviewsStudyIdRouteImport } from './routes/admin/reviews/$studyId'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ParticipantStudiesIndexRouteImport } from './routes/participant/studies/index'
 import { Route as ParticipantStudiesStudyIdRouteImport } from './routes/participant/studies/$studyId'
 import { Route as ResearcherRecruitmentIndexRouteImport } from './routes/researcher/recruitment/index'
@@ -237,6 +238,11 @@ const AdminReviewsStudyIdRoute = AdminReviewsStudyIdRouteImport.update({
   path: '/reviews/$studyId',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ParticipantStudiesIndexRoute = ParticipantStudiesIndexRouteImport.update({
   id: '/studies/',
   path: '/studies/',
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/researcher/': typeof ResearcherIndexRoute
   '/studies/': typeof StudiesIndexRoute
   '/admin/reviews/$studyId': typeof AdminReviewsStudyIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/participant/studies/$studyId': typeof ParticipantStudiesStudyIdRoute
   '/researcher/recruitment/$studyId': typeof ResearcherRecruitmentStudyIdRoute
   '/admin/reviews/': typeof AdminReviewsIndexRoute
@@ -338,6 +345,7 @@ export interface FileRoutesByTo {
   '/researcher': typeof ResearcherIndexRoute
   '/studies': typeof StudiesIndexRoute
   '/admin/reviews/$studyId': typeof AdminReviewsStudyIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/participant/studies/$studyId': typeof ParticipantStudiesStudyIdRoute
   '/researcher/recruitment/$studyId': typeof ResearcherRecruitmentStudyIdRoute
   '/admin/reviews': typeof AdminReviewsIndexRoute
@@ -382,6 +390,7 @@ export interface FileRoutesById {
   '/researcher/': typeof ResearcherIndexRoute
   '/studies/': typeof StudiesIndexRoute
   '/admin/reviews/$studyId': typeof AdminReviewsStudyIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/participant/studies/$studyId': typeof ParticipantStudiesStudyIdRoute
   '/researcher/recruitment/$studyId': typeof ResearcherRecruitmentStudyIdRoute
   '/admin/reviews/': typeof AdminReviewsIndexRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/researcher/'
     | '/studies/'
     | '/admin/reviews/$studyId'
+    | '/api/auth/$'
     | '/participant/studies/$studyId'
     | '/researcher/recruitment/$studyId'
     | '/admin/reviews/'
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/researcher'
     | '/studies'
     | '/admin/reviews/$studyId'
+    | '/api/auth/$'
     | '/participant/studies/$studyId'
     | '/researcher/recruitment/$studyId'
     | '/admin/reviews'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/researcher/'
     | '/studies/'
     | '/admin/reviews/$studyId'
+    | '/api/auth/$'
     | '/participant/studies/$studyId'
     | '/researcher/recruitment/$studyId'
     | '/admin/reviews/'
@@ -536,6 +548,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   StudiesStudyIdRoute: typeof StudiesStudyIdRoute
   StudiesIndexRoute: typeof StudiesIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -799,6 +812,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReviewsStudyIdRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/participant/studies/': {
       id: '/participant/studies/'
       path: '/studies'
@@ -924,6 +944,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   StudiesStudyIdRoute: StudiesStudyIdRoute,
   StudiesIndexRoute: StudiesIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

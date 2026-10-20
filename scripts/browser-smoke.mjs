@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { chromium } from "playwright";
 import { checkedOutputPath, checkedUrl, WORKSPACE_ROOT } from "./browser-guard.mjs";
+import { findInstalledChromium } from "./browser-binary.mjs";
 import { computeBrandWarnings } from "./brand-check.mjs";
 import {
   authInvariantWarnings,
@@ -90,9 +91,14 @@ function compareAgainstBaseline(verdict) {
 
 let browser = null;
 try {
+  // Playwright's own build first; a Chromium already on this machine is the
+  // fallback when that build is missing.
+  const bundled = chromium.executablePath();
+  const executablePath = existsSync(bundled) ? undefined : findInstalledChromium();
   browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
+    ...(executablePath ? { executablePath } : {}),
   });
 
   const viewports = {};

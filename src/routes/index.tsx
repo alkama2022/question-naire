@@ -136,6 +136,7 @@ function Home() {
 }
 
 function OpenStudies() {
+  const server = useDataMode() === "server";
   const studies = useDemoQuery((state) => state.studies.filter((study) => isPublicStudy(study.status)));
   const users = useDemoQuery((state) => state.users);
   const visible = studies.slice(0, 3);
@@ -145,8 +146,9 @@ function OpenStudies() {
         <div>
           <h2 className="font-display text-3xl font-semibold">Studies you can open now</h2>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            These are labelled sample records stored in this browser. Drafts and studies still in
-            review are not shown.
+            {server
+              ? "These are labelled sample records kept on the server. Drafts and studies still in review are not shown."
+              : "These are labelled sample records stored in this browser. Drafts and studies still in review are not shown."}
           </p>
         </div>
         <Button variant="secondary" asChild>
