@@ -189,8 +189,7 @@ async function main() {
     record("the consent is read back from the database", true);
 
     /* 8 — the researcher files a study request ---------------------------- */
-    await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(750);
+    await gotoHydrated(page, `${BASE}/login`);
     await page.fill("#login-email", RESEARCHER.email);
     await page.fill("#login-password", RESEARCHER.password);
     await page.getByRole("button", { name: "Log in" }).click();
