@@ -138,7 +138,7 @@ function studyFromForm(
  * and waits for the server's answer — the demo seed is not a source of truth
  * in that build, and the server seeds the same example records itself.
  */
-const serverFirst = import.meta.env.VITE_AUTH_ENABLED !== "false";
+const serverFirst = import.meta.env?.VITE_AUTH_ENABLED !== "false";
 
 const seed = serverFirst ? null : cloneSeed();
 

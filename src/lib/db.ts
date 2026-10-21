@@ -56,10 +56,13 @@ export interface Sql {
  * `values` are bound as parameters (in order) after the text is inlined.
  */
 export class RawSql {
-  constructor(
-    readonly text: string,
-    readonly values: readonly unknown[] = [],
-  ) {}
+  text: string;
+  values: readonly unknown[];
+
+  constructor(text: string, values: readonly unknown[] = []) {
+    this.text = text;
+    this.values = values;
+  }
 }
 
 /**

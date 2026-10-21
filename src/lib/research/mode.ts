@@ -21,9 +21,12 @@ export type DataMode = "browser" | "server";
  * `VITE_AUTH_ENABLED` is a build-time value, so the first render already
  * knows which path is live — no flash of the wrong banner while the server
  * answers. The server's own answer still has the final word at runtime.
+ *
+ * `import.meta.env` is the bundler's object; outside it (a plain Node
+ * process, a unit test) it is undefined, and the flag simply reads as unset.
  */
-const buildMode: DataMode =
-  import.meta.env.VITE_AUTH_ENABLED !== "false" ? "server" : "browser";
+const buildFlag = import.meta.env?.VITE_AUTH_ENABLED;
+const buildMode: DataMode = buildFlag === "false" ? "browser" : "server";
 
 let currentMode: DataMode = buildMode;
 let resolved = false;
