@@ -14,6 +14,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const server = useDataMode() === "server";
   return (
     <MarketingShell>
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 lg:grid-cols-2 lg:py-16">
@@ -117,8 +118,9 @@ function Home() {
         <div className="rounded-2xl bg-brand px-6 py-10 text-brand-foreground sm:px-10">
           <h2 className="font-display text-3xl font-semibold">Start with the study you already have in mind.</h2>
           <p className="mt-3 max-w-2xl text-brand-foreground/80">
-            This version runs as a clearly labelled demo in your browser. It is enough to walk
-            through recruitment before any server is connected.
+            {server
+              ? "Accounts and records are held on the server, so a study request, a consent, and a recruitment count are the same on every device you sign in from."
+              : "This version runs as a clearly labelled demo in your browser. It is enough to walk through recruitment before any server is connected."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button variant="accent" asChild>

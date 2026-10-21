@@ -2,13 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 import { PageHeader } from "@/components/layout/shells";
+import { useDataMode } from "@/lib/research/use-data-mode";
 
 const items = [
   ["Why is my study not public?", "It stays private until it is approved and you open recruitment. Drafts, pending requests, and rejected requests are not listed."],
   ["Why are there three progress numbers?", "Someone can consent and still not finish the questionnaire. A finished questionnaire can still be excluded. Accepted means a person chose to keep it, not that it was verified."],
-  ["Did my submission email a reviewer?", "No. Demo mode does not send email. The pending state is stored in this browser."],
+  ["Did my submission email a reviewer?", "No. The review queue is on the platform and the researcher is notified inside the workspace. No email is sent."],
   ["Can I pay participants here?", "No. Version 1 does not move money. Write only incentives that are actually confirmed, or say that none are."],
-  ["What is still not built?", "Secure accounts, a hosted database, email, ethics-board integration, and a live connection to questionnaire tools."],
+  ["What is still not built?", "Email delivery, ethics-board integration, and a live connection to questionnaire tools."],
 ];
 
 export const Route = createFileRoute("/researcher/help")({
@@ -17,9 +18,17 @@ export const Route = createFileRoute("/researcher/help")({
 });
 
 function Page() {
+  const server = useDataMode() === "server";
   return (
     <>
-      <PageHeader title="Help and support" description="Short answers for the demo. Use Contact if you need to leave a note in this browser." />
+      <PageHeader
+        title="Help and support"
+        description={
+          server
+            ? "Short answers. Use Contact if you need to leave a note for the team."
+            : "Short answers for the demo. Use Contact if you need to leave a note in this browser."
+        }
+      />
       <Accordion.Root type="single" collapsible className="grid gap-2">
         {items.map(([title, body]) => (
           <Accordion.Item key={title} value={title} className="rounded-xl border border-line bg-surface">

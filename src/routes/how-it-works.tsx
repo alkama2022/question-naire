@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingShell, PageHeader } from "@/components/layout/shells";
 import { Button } from "@/components/ui/button";
+import { useDataMode } from "@/lib/research/use-data-mode";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({ meta: [{ title: "How it works · ResearchConnect Nigeria" }] }),
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/how-it-works")({
 });
 
 function Page() {
+  const server = useDataMode() === "server";
   return (
     <MarketingShell>
       <div className="mx-auto max-w-3xl px-4 py-12">
