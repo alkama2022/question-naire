@@ -42,6 +42,23 @@ function ownOrigin(request?: Request): string | null {
 }
 
 /**
+ * The loopback origins, on any port.
+ *
+ * A local preview is often reached through a proxy on a different port than
+ * the one the server listens on, and the browser's `Origin` is the one the
+ * visitor typed. Loopback traffic can only come from the same machine, and
+ * cross-site requests are still refused by the sibling-isolation guard
+ * (`isolation.server.ts`).
+ */
+const LOOPBACK_ORIGINS = [
+  "http://localhost:*",
+  "https://localhost:*",
+  "http://127.0.0.1:*",
+  "https://127.0.0.1:*",
+  "http://[::1]:*",
+];
+
+/**
  * Add the app's own origin to Better Auth's trusted origins.
  *
  * Safe to call more than once, and a no-op when the trusted origins are
@@ -55,6 +72,6 @@ export function trustOwnOrigin(): void {
   const list = Array.isArray(existing) ? existing : [];
   options.trustedOrigins = async (request?: Request) => {
     const own = ownOrigin(request);
-    return own ? [...list, own] : list;
+    return own ? [...list, own, ...LOOPBACK_ORIGINS] : [...list, ...LOOPBACK_ORIGINS];
   };
 }

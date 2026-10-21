@@ -175,6 +175,15 @@ export default defineConfig(({ command, isPreview }) => ({
             // manifest + head-tag middleware). Nitro v3 defaults serverDir to
             // false, so removing this silently unwires /?install=1 on deploys.
             serverDir: "./server",
+            // Bundle every node_modules package into the function.
+            //
+            // The Vercel function otherwise keeps them as external imports and
+            // lists them in a traced-dependency manifest that the deployment
+            // has to install separately. When that install does not happen,
+            // the function fails on its first request with
+            // ERR_MODULE_NOT_FOUND — the request never reaches the app.
+            // Bundling removes the runtime install step entirely.
+            noExternals: true,
           }),
         ]
       : []),

@@ -33,7 +33,7 @@ function Page() {
         </ol>
         <div className="mt-8 flex flex-wrap gap-2">
           <Button asChild>
-            <Link to="/register" search={{}}>Create a demo session</Link>
+            <Link to="/register" search={{}}>{server ? "Create an account" : "Create a demo session"}</Link>
           </Button>
           <Button variant="secondary" asChild>
             <Link to="/studies">Browse open studies</Link>

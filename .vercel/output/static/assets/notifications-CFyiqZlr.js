@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-C7-p7AN0.js";import{i as n}from"./panels-BVfg_nq7.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Notifications`,description:`In-app notices only. No email is sent.`}),(0,r.jsx)(n,{})]});export{i as component};

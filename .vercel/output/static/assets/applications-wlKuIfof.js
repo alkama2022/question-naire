@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-C7-p7AN0.js";import{n}from"./views-tTJESwPd.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`My applications`,description:`Consent, decline, and withdrawal records from this browser.`}),(0,r.jsx)(n,{})]});export{i as component};

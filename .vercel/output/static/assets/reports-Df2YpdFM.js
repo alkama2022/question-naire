@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-C7-p7AN0.js";import{s as n}from"./views-tTJESwPd.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Reports and exports`,description:`Export permitted study counts. Participant contact details are not in the file.`}),(0,r.jsx)(n,{})]});export{i as component};

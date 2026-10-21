@@ -1,6 +1,6 @@
-import { C as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
 import { t as Button } from "./store-BQzU-IjM.mjs";
+import { C as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as PageHeader, t as MarketingShell } from "./shells-DTkoj-6x.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/for-researchers-iKE3kVOm.js
 var import_jsx_runtime = require_jsx_runtime();

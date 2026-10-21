@@ -1,0 +1,1 @@
+import{n as e}from"./clsx-DiPXQpEa.js";import{r as t}from"./shells-C7-p7AN0.js";import{o as n}from"./views-tTJESwPd.js";var r=e(),i=()=>(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`Your participant workspace`,description:`Open studies and your own consent history, stored in this browser.`}),(0,r.jsx)(n,{})]});export{i as component};
